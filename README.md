@@ -42,12 +42,12 @@ You need to install only one of them but both can be used at the same time on HA
 ## Installation (see custom_components/sinope/GT125_connect.md for more specific info)
 There are two methods to install this custom component:
 1. via HACS component:
-This repository is compatible with the Home Assistant Community Store (HACS).
-After installing HACS, install 'sinope-gt125' from the store, and use the configuration.yaml example below.
+  - This repository is compatible with the Home Assistant Community Store (HACS).
+  - After installing HACS, install 'sinope-gt125' from the store, and use the configuration.yaml example below.
 1. Manually via direct download:
-1. Download the zip file of this repository using the top right, green download button.
-1. Extract the zip file on your computer, then copy the entire `custom_components` folder inside your Home Assistant `config` directory (where you can find your `configuration.yaml` file).
-1. Your config directory should look like this:
+  - Download the zip file of this repository using the top right, green download button.
+  - Extract the zip file on your computer, then copy the entire `custom_components` folder inside your Home Assistant `config` directory (where you can find your `configuration.yaml` file).
+  - Your config directory should look like this:
 
     ```
     config/
