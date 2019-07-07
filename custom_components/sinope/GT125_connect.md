@@ -36,18 +36,18 @@ sinope:
 ```
 ## First run
 To setup this custom_component, login to your Rpi and cd to the directory where you have copied the file.
-- Edit the file device.py to add your GT125 IP address at the line 11.
+- Edit the file device.py to add your GT125 IP address at the line 12.
 ```yaml
 SERVER = '192.168.x.x' 
 ```
-- Add your GT125 ID, written on the back of your device, on line 15. (without space) 
+- Add your GT125 ID, written on the back of your device, on line 16. (without space) 
 
 Execute the command: python3 device.py. (for Python3.7 the command is python3.7 device.py) This is required to get the Api_Key and the deviceID for each Sinopé devices connected to your GT125. On first run, device.py send a ping request to the GT125 and it will ask you to push de "WEB" button on the GT125. 
-This will give you the Api Key that you need to write on line 13, 
+This will give you the Api Key that you need to write on line 14, 
 ```yaml
 api_key = "xxxxxxxxxxxxxxxx" 
 ```
-- make sure your GT125 use the port 4550, this is the one by default or change line 16 accordingly.
+- make sure your GT125 use the port 4550, this is the one by default or change line 18 accordingly.
 
 I've put lots of comment in the code so I think you will understand.
 
