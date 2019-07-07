@@ -1,6 +1,6 @@
 Update:
 
-To support HACS, this repository has been broken up into two.
+To support [HACS](https://community.home-assistant.io/t/custom-component-hacs/121727), this repository has been broken up into two.
 - sinope-gt125 for devices management via direct conection to the gt125 web gateway
 - sinope-1 for devices management via [Neviweb](http://neviweb.com) portal.
 
@@ -42,7 +42,7 @@ You need to install only one of them but both can be used at the same time on HA
 ## Installation (see custom_components/sinope/GT125_connect.md for more specific info)
 There are two methods to install this custom component:
 - via HACS component:
-  - This repository is compatible with the Home Assistant Community Store (HACS).
+  - This repository is compatible with the Home Assistant Community Store ([HACS](https://community.home-assistant.io/t/custom-component-hacs/121727)).
   - After installing HACS, install 'sinope-gt125' from the store, and use the configuration.yaml example below.
 - Manually via direct download:
   - Download the zip file of this repository using the top right, green download button.
