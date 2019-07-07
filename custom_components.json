@@ -1,0 +1,16 @@
+{
+   "sinope": {
+        "version": "1.0.0",
+        "local_location": "/custom_components/sinope/__init__.py",
+        "remote_location": "https://github.com/claudegel/sinope-gt125/tree/master/custom_components/__init__.py",
+        "visit_repo": "https://github.com/claudegel/sinope-gt125",
+        "changelog": "https://github.com/claudegel/sinope-gt125/wiki/Changelog",
+        "resources": [
+            "https://github.com/claudegel/sinope-gt125/tree/master/custom_components/light.py",
+            "https://github.com/claudegel/sinope-gt125/tree/master/custom_components/climate.py",
+            "https://github.com/claudegel/sinope-gt125/tree/master/custom_components/switch.py",
+            "https://github.com/claudegel/sinope-gt125/tree/master/custom_components/device.py",
+            "https://github.com/claudegel/sinope-gt125/tree/master/custom_components/devices.json"
+        ]
+    }
+}
