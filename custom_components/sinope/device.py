@@ -128,7 +128,7 @@ if binascii.hexlify(send_ping_request(ping_request())) == b'55000200130021':
       print('Api key : ',retreive_key(binascii.hexlify(send_key_request(key_request(invert(Api_ID))))))
       print("Copy the value between the b'...' in the Api_Key, line 13, replacing the <None> value")
       print('and copy it to your sinope section in your configuration.yaml file, api_key: ')
-      shutil.copyfile('devices.json', CONFIG+'sinope_devices.json')
+      shutil.copy('devices.json', CONFIG+'sinope_devices.json')
       print('config file copied to: '+CONFIG)
     else:
       # finding device ID, one by one
