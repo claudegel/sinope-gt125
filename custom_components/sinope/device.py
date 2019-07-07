@@ -6,6 +6,7 @@ import crc8
 import json
 import io
 import shutil
+import os
 
 ### data that will come from HA config
 SERVER = 'XXX.XXX.XXX.XXX' #ip address of the GT125
@@ -126,10 +127,13 @@ if binascii.hexlify(send_ping_request(ping_request())) == b'55000200130021':
       print("ok we can send the api_key request\n")
       print("push the GT125 <web> button")
       print('Api key : ',retreive_key(binascii.hexlify(send_key_request(key_request(invert(Api_ID))))))
-      print("Copy the value between the b'...' in the Api_Key, line 13, replacing the <None> value")
+      print("Copy the value between the b'...' in the Api_Key, line 14, replacing the <None> value")
       print('and copy it to your sinope section in your configuration.yaml file, api_key: ')
-      shutil.copy('devices.json', CONFIG+'sinope_devices.json')
-      print('config file copied to: '+CONFIG)
+      if os.path.exists(CONFIG+'sinope_devices.json') == False:
+        shutil.copy('devices.json', CONFIG+'sinope_devices.json')
+        print('Config file copied to: '+CONFIG)
+      else:
+	    print('Config file allready exist')
     else:
       # finding device ID, one by one
       while True:
