@@ -130,6 +130,26 @@ Look like the GT125 use a different deviceID then Neviweb portal. Once you have 
 For power switch devices, RM3250RF and RM3200RF, you need to push on the top blue ligth to get the deviceID.
 Each time you will add a new device to your GT125 you will need to run that setup.
 
+## Troubleshooting
+If you get a stack trace related to a Sinope component in your `home-assistant.log` file, you can file an issue in this repository.
+
+You can also post in one of those threads to get help:
+- https://community.home-assistant.io/t/sinope-line-voltage-thermostats/17157
+- https://community.home-assistant.io/t/adding-support-for-sinope-light-switch-and-dimmer/38835
+
+### Turning on Sinope debug messages in `home-assistant.log` file
+
+To have a maximum of information to help you, please provide a snippet of your `home-assistant.log` file. I've added some debug log messages that could help diagnose the problem.
+
+Add thoses lines to your `configuration.yaml` file
+   ```yaml
+   logger:
+     default: warning
+     logs:
+       custom_components.sinope: debug
+   ```
+This will set default log level to warning for all your components, except for Sinope which will display more detailed messages.
+
 ## Customization
 Install Custom UI and add the following in your code:
 
@@ -162,8 +182,6 @@ customize: !include customize.yaml
 ## TO DO
 - Document each available services for every platforms + available attributes.
 - Explore how to automatically setup sensors in HA that will report the states of a specific device attribute (i.e. the wattage of a switch device)
-
-For Sinope custom component:
 - Leave socket open to listen for events from devices state changes and answers from our data request. For now I open, send request, get result then close socket.
 - Detect events from light dimer and switch so we can receive state changes from the GT125 without polling the devices (faster).
 - Send time, date, sunset, sunrise once a day to each devices. Need to find out how to do that once a day at specific time.
