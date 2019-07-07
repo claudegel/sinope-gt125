@@ -4,7 +4,7 @@ To support HACS, this repository has been broken up into two.
 - sinope-gt125 for devices management via direct conection to the gt125 web gateway
 - sinope-1 for devices management via [Neviweb](http://neviweb.com) portal.
 
-# Home Assistant Sinope Custom Components
+# Home Assistant Sinope Custom Components (sinope-gt125)
 
 Here is a custom component to suport [Sinopé technologies](http://sinopetech.com/) devices in [Home Assistant](http://www.home-assistant.io) via a direct connection to the GT125 router from 
 Sinopé Technologies to interact with their smart devices like thermostats, light switches/dimmers and load controllers. It also supports some devices made by [Ouellet](http://www.ouellet.com/en-ca/products/thermostats-and-controls/neviweb%C2%AE-wireless-communication-controls.aspx).
