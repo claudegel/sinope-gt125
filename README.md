@@ -79,19 +79,19 @@ sinope:
 ## First run
 
 To setup this custom_component, login to your Rpi and cd to the directory where you have copied the file.
-- Edit the file device.py to add your GT125 IP address at the line 10.
+- Edit the file device.py to add your GT125 IP address at the line 12.
 ```yaml
 SERVER = '192.168.x.x' 
 ```
-- Add your device ID, written on the back of your GT125, on line 14. (without space) You will need to write it the same way in your configuration.yaml file.
+- Add your device ID, written on the back of your GT125, on line 16. (without space) You will need to write it the same way in your configuration.yaml file.
 - Install required library crc8.py with command: sudo pip3 install crc8. For python3.7 use command: sudo python3.7 -m pip install crc8
 
 Execute the command: python3 device.py in console (for python3.7: python3.7 device.py). This is required to get the Api_Key and the deviceID for each Sinopé devices connected to your GT125. On first run, device.py send a ping request to the GT125 and it will ask you to push de "WEB" button on the GT125. 
-This will give you the Api Key that you need to write on line 12, 
+This will give you the Api Key that you need to write on line 14, 
 ```yaml
 api_key = "xxxxxxxxxxxxxxxx" 
 ```
-- make sure your GT125 use the port 4550, this is the one by default or change line 16 accordingly.
+- make sure your GT125 use the port 4550, this is the one by default or change line 18 accordingly.
 - once you get your Api_Key you will start to get the device_id for all devices connected to your GT125.  See devices discovery bellow.
 
 You're ready to setup your Sinopé devices.
