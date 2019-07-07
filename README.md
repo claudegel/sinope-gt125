@@ -35,11 +35,11 @@ You need to connect your devices to your GT125 web gateway before being able to 
 
 There are two custom component giving you the choice to manage your devices via the neviweb portal or directly via your GT125 web gateway:
 - [Neviweb](https://github.com/claudegel/sinope-1) custom component to manage your devices via neviweb portal
-- [Sinope](https://github.com/claudegel/sinope-gt125) custom component to manage your devices directly via your GT125 router
+- [Sinope](https://github.com/claudegel/sinope-gt125) custom component to manage your devices directly via your GT125 web gateway
 
 You need to install only one of them but both can be used at the same time on HA.
 
-## Installation (see custom_components/sinope/GT125_connect.md for more specific info)
+## Installation (see custom_components/GT125_connect.md for more specific info)
 There are two methods to install this custom component:
 - via HACS component:
   - This repository is compatible with the Home Assistant Community Store ([HACS](https://community.home-assistant.io/t/custom-component-hacs/121727)).
