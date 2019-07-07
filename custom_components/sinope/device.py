@@ -5,6 +5,7 @@ import sys
 import crc8
 import json
 import io
+import shutil
 
 ### data that will come from HA config
 SERVER = 'XXX.XXX.XXX.XXX' #ip address of the GT125
@@ -14,6 +15,7 @@ Api_Key = None # ex: "801C0E0F12C1001A"
 Api_ID = "xxxxxxxxxxxxxxxx"
 # Port number to reach your GT125
 PORT = 4550
+CONFIG = "/home/homeassistant/.homeassistant/.storage/" #add your config dit if different
 
 def invert(id):
     """The Api_ID must be sent in reversed order"""
@@ -124,8 +126,10 @@ if binascii.hexlify(send_ping_request(ping_request())) == b'55000200130021':
       print("ok we can send the api_key request\n")
       print("push the GT125 <web> button")
       print('Api key : ',retreive_key(binascii.hexlify(send_key_request(key_request(invert(Api_ID))))))
-      print("Copy the value between the b'...' in the Api_Key, line 12, replacing the <None> value")
+      print("Copy the value between the b'...' in the Api_Key, line 13, replacing the <None> value")
       print('and copy it to your sinope section in your configuration.yaml file, api_key: ')
+      shutil.copyfile('devices.json', CONFIG+'sinope_devices.json')
+      print('config file copied to: '+CONFIG)
     else:
       # finding device ID, one by one
       while True:
@@ -152,7 +156,7 @@ if binascii.hexlify(send_ping_request(ping_request())) == b'55000200130021':
           print('Device '+dev+' has been added to the file devices.json')
           data = '["'+dev+'", "'+name+'", "'+type+'", "'+watt+'"]'
           # write data device to file
-          with io.open('devices.json', 'a', encoding='utf8') as outfile:
+          with io.open(CONFIG+'sinope_devices.json', 'a', encoding='utf8') as outfile:
             outfile.write('\n')
             outfile.write(data)
           outfile.close()
