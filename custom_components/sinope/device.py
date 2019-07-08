@@ -78,14 +78,18 @@ def get_device_id():
 def send_ping_request(data):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_address = (SERVER, PORT)
-    sock.connect(server_address)
-    try:
-      sock.sendall(data)
-      reply = sock.recv(1024)
-      if crc_check(reply):
+    if SERVER == 'XXX.XXX.XXX.XXX':
+      print("Please enter your GT125 IP address on line 12")
+      raise SystemExit
+    else:
+      sock.connect(server_address)
+      try:
+        sock.sendall(data)
+        reply = sock.recv(1024)
+        if crc_check(reply):
           return reply
-    finally:
-      sock.close()
+      finally:
+        sock.close()
 
 def ping_request():
     ping_data = "550002001200"
@@ -124,16 +128,16 @@ def send_key_request(data):
 # send ping to GT125      
 if binascii.hexlify(send_ping_request(ping_request())) == b'55000200130021':
     if Api_Key == None:
-      print("ok we can send the api_key request\n")
-      print("push the GT125 <web> button")
-      print('Api key : ',retreive_key(binascii.hexlify(send_key_request(key_request(invert(Api_ID))))))
-      print("Copy the value between the b'...' in the Api_Key, line 14, replacing the <None> value")
-      print('and copy it to your sinope section in your configuration.yaml file, api_key: ')
       if os.path.exists(CONFIG+'sinope_devices.json') == False:
         shutil.copy('devices.json', CONFIG+'sinope_devices.json')
         print('Config file copied to: '+CONFIG)
+        print("ok we can send the api_key request\n")
+        print("push the GT125 <web> button")
+        print('Api key : ',retreive_key(binascii.hexlify(send_key_request(key_request(invert(Api_ID))))))
+        print("Copy the value between the b'...' in the Api_Key, line 14, replacing the <None> value")
+        print("and copy it to your sinope section in your configuration.yaml file, Api_Key: ")
       else:
-	    print('Config file allready exist')
+        print("Config file allready exist... Please reenter your Api_key on line 14")
     else:
       # finding device ID, one by one
       while True:
@@ -168,5 +172,5 @@ if binascii.hexlify(send_ping_request(ping_request())) == b'55000200130021':
           quit = input()
           if quit == "q":
             break
-      print('Once finished, edit file devices.json to add more information about your devices.')
+      print('Once finished, edit file '+CONFIG+'sinope_devices.json to add more information about your devices.')
       print('Device type are listed in climate.py, light.py and switch.py')
