@@ -52,6 +52,8 @@ There are two methods to install this custom component:
     ```
     config/
       configuration.yaml
+      .storage/
+        sinope_devices.json
       custom_components/
         sinope/
           __init__.py
@@ -117,7 +119,7 @@ For the data report request it is possible to send data to all device at once by
 It is used to send time, date, sunset and sunrise hour, outside temperature, set all device to away mode, etc, broadcasted to all device.
 
 ## Devices discovery
-Look like the GT125 use a different deviceID then Neviweb portal. Once you have your Api_key written in device.py, you will need to run it to request deviceID for each devices on your network one by one. The program will wait for you to push on both button of your device to revceive there deviceID. Then, it will ask for device data like name, type and connected watt load. To get the list of devices types just type "h" when asked for device type. This will display all known types and then ask for your device type. If you don't have all information just hit enter to leave those fields blank. It will be possible to add missing data later. All devices ID and data will be written in file devices.json. Once you have all your devices, hit "q" at the end to quit the program. Edit devices.json and add the name, type and wattage (for light devices) for each devices. Light connected watt load is not measured by the light devices but instead written in Neviweb on setup of light devices. We need to write it to devices.json (kind of Neviweb portal equivalent) to finish the devices setup. ex:
+Look like the GT125 use a different deviceID then Neviweb portal. Once you have your Api_key written in device.py, you will need to run it to request deviceID for each devices on your network one by one. The program will wait for you to push on both button of your device to revceive there deviceID. Then, it will ask for device data like name, type and connected watt load. To get the list of devices types just type "h" when asked for device type. This will display all known types and then ask for your device type. If you don't have all information just hit enter to leave those fields blank. It will be possible to add missing data later. All devices ID and data will be written in file devices.json and that file will be moved to config/.storage/sinope_devices.json to insure that any new update won't overwrite it. Once you have all your devices, hit "q" at the end to quit the program. Edit devices.json and add the name, type and wattage (for light devices) for each devices. Light connected watt load is not measured by the light devices but instead written in Neviweb on setup of light devices. We need to write it to devices.json (kind of Neviweb portal equivalent) to finish the devices setup. ex:
 
 ```yaml
 ["id", "name", "type", "watt"] <- do not erase or edit this line
