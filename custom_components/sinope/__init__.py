@@ -558,7 +558,7 @@ class SinopeClient(object):
         """Get information for this device."""
         # send requests
         try:
-            timer = get_timer_length(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_light_timer))).hex())        except OSError:
+            timer = get_timer_length(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_light_timer))).hex())
         except OSError:
             raise PySinopeError("Cannot get light info")    
         # Prepare data
