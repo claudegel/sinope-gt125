@@ -4,6 +4,8 @@ To support [HACS](https://community.home-assistant.io/t/custom-component-hacs/12
 - sinope-gt125 for devices management via direct conection to the gt125 web gateway
 - sinope-1 for devices management via [Neviweb](http://neviweb.com) portal.
 
+Make a backup of your file devices.json before first update via HACS and copy it to config/.storage/sinope_devices.json
+
 # Home Assistant Sinope Custom Components (sinope-gt125)
 
 Here is a custom component to suport [Sinopé technologies](http://sinopetech.com/) devices in [Home Assistant](http://www.home-assistant.io) via a direct connection to the GT125 router from 
