@@ -69,8 +69,8 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
             device_type = "{}".format(int(dev_list[i][2]))
             devices.append(SinopeThermostat(data, device_id, device_name, device_type))
         if i == tot-1:
-	        break
-	i = i + 1
+            break
+        i = i + 1
     
     add_devices(devices, True)
 
@@ -80,7 +80,7 @@ class SinopeThermostat(ClimateDevice):
     def __init__(self, data, device_id, name, device_type):
         """Initialize."""
         self._name = name
-	self._type = device_type
+        self._type = device_type
         self._client = data.sinope_client
         self._id = device_id
         self._wattage = None
@@ -104,7 +104,7 @@ class SinopeThermostat(ClimateDevice):
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
             self._name, elapsed, device_data)
-	
+
         self._cur_temp = float(device_data["temperature"])
         self._target_temp = float(device_data["setpoint"]) if \
             device_data["setpoint"] is not None else 0.0
@@ -112,12 +112,12 @@ class SinopeThermostat(ClimateDevice):
             device_data["heatLevel"] is not None else 0
         self._alarm = device_data["alarm"]
         self._rssi = device_data["rssi"]
-	self._operation_mode = device_data["mode"]
+        self._operation_mode = device_data["mode"]
         if device_data["mode"] != SINOPE_STATE_AWAY:
             self._is_away = False
         else:
             self._is_away = True
-	device_info = self._client.get_climate_device_info(self._id)
+        device_info = self._client.get_climate_device_info(self._id)
         self._wattage = device_info["wattage"]
         self._wattage_override = device_info["wattageOverride"]
         self._min_temp = device_info["tempMin"]
@@ -209,7 +209,7 @@ class SinopeThermostat(ClimateDevice):
 
     @property
     def is_on(self):
-	if self._heat_level == None:
+        if self._heat_level == None:
             return False
         return self._heat_level > 0
 
@@ -224,7 +224,7 @@ class SinopeThermostat(ClimateDevice):
     def set_operation_mode(self, operation_mode):
         """Set new operation mode."""
         mode = self.to_sinope_operation_mode(operation_mode)
-	if mode == 3: #auto mode
+        if mode == 3: #auto mode
             self._client.send_time(self._id)
         self._client.set_mode(self._id, self._type, mode)
 
@@ -258,5 +258,5 @@ class SinopeThermostat(ClimateDevice):
 
     def turn_on(self):
         """Turn device on (auto mode)."""
-      	self._client.send_time(self._id)
+        self._client.send_time(self._id)
         self._client.set_mode(self._id, self._type, 3)
