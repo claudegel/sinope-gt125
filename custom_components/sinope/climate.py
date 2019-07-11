@@ -58,7 +58,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
         for line in f:
             dev_list.append(json.loads(line))         
     f.close()
-    i = 1
+    i = 2
     tot = len(dev_list)
     devices = []
     for a in dev_list:
