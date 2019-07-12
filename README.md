@@ -81,16 +81,15 @@ sinope:
   ```
 ## First run
 
-To setup this custom_component, login to your Rpi and cd to the directory where you have copied the file. You don't need to edit the file device.py anymore but you will need to have the following data oon hand:
-- IP adress of the GT125
-- GT125 device ID, written on the back of the GT125
-- Port number to connect to the GT125. should be 4550 (default)
+To setup this custom_component, login to your Rpi and cd to the directory where you have copied the file. You don't need to edit the file device.py anymore but you will need to have the following data handy:
+- IP adress of the GT125,
+- GT125 device ID, written on the back of the device,
+- Port number to connect to the GT125. should be 4550 (default),
+- the required library crc8.py should be installed automatically. if not use this command: sudo pip3 install crc8. For python3.7,  use command: sudo python3.7 -m pip install crc8
 
-- the required library crc8.py should be installed automatically. if not use this command: sudo pip3 install crc8. For python3.7 use command: sudo python3.7 -m pip install crc8
+Execute the command: 'sudo python3 device.py' in console (for python3.7: 'sudo python3.7 device.py'). Sudo is required for file permission fix. This is required to install the data above and to get the Api_Key and later the deviceID for each Sinopé devices connected to your GT125. On first run, device.py ask for IP, Api ID and port number then send a ping request to the GT125. It will then ask you to push de "WEB" button on the GT125. This will give you the Api Key.
 
-Execute the command: 'sudo python3 device.py' in console (for python3.7: 'sudo python3.7 device.py'). This is required to install the data above and to get the Api_Key and later the deviceID for each Sinopé devices connected to your GT125. On first run, device.py ask for IP, Api ID and port number then send a ping request to the GT125. It will then ask you to push de "WEB" button on the GT125. This will give you the Api Key 
-
-- once you get your Api_Key, all data will be written in the config file config/.storage/sinope_devices.json.
+- Once you get your Api_Key, all data will be written in the config file 'config/.storage/sinope_devices.json'.
 - On the next run of device.py, you will start to get the device_id for all devices connected to your GT125.  See devices discovery bellow.
 
 You're ready to setup your Sinopé devices.
