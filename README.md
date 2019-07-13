@@ -4,7 +4,7 @@ To support [HACS](https://community.home-assistant.io/t/custom-component-hacs/12
 - sinope-gt125 for devices management via direct conection to the gt125 web gateway
 - sinope-1 for devices management via [Neviweb](http://neviweb.com) portal.
 
-Make a backup of your file devices.json before first update via HACS and copy it to config/.storage/sinope_devices.json
+If you already use this custom_component, make a backup of your file devices.json before first update via HACS. Devices.json will be removed. You'll need to copy your devices data to config/.storage/sinope_devices.json after first run of device.py (see below).
 
 # Home Assistant Sinope Custom Components (sinope-gt125)
 
@@ -36,8 +36,8 @@ Here is a list of currently supported devices. Basically, it's everything that c
 You need to connect your devices to your GT125 web gateway before being able to interact with them within Home Assistant. Please refer to the instructions manual of your device or visit [Neviweb support](https://www.sinopetech.com/blog/support-cat/plateforme-nevi-web/).
 
 There are two custom component giving you the choice to manage your devices via the neviweb portal or directly via your GT125 web gateway:
-- [Neviweb](https://github.com/claudegel/sinope-1) custom component to manage your devices via neviweb portal
-- [Sinope](https://github.com/claudegel/sinope-gt125) custom component to manage your devices directly via your GT125 web gateway
+- [Neviweb](https://github.com/claudegel/sinope-1) custom component to manage your devices via neviweb portal.
+- [Sinope](https://github.com/claudegel/sinope-gt125) custom component to manage your devices directly via your GT125 web gateway.
 
 You need to install only one of them but both can be used at the same time on HA.
 
@@ -45,7 +45,7 @@ You need to install only one of them but both can be used at the same time on HA
 There are two methods to install this custom component:
 - via HACS component:
   - This repository is compatible with the Home Assistant Community Store ([HACS](https://community.home-assistant.io/t/custom-component-hacs/121727)).
-  - After installing HACS, install 'sinope-gt125' from the store, and use the configuration.yaml example below.
+  - After installing HACS, install 'Sinope GT125' from the store, and use the configuration.yaml example below.
 - Manually via direct download:
   - Download the zip file of this repository using the top right, green download button.
   - Extract the zip file on your computer, then copy the entire `custom_components` folder inside your Home Assistant `config` directory (where you can find your `configuration.yaml` file).
@@ -63,7 +63,6 @@ There are two methods to install this custom component:
           switch.py
           climate.py
           device.py
-          devices.json
       ...
     ```
 ## Configuration
@@ -82,21 +81,16 @@ sinope:
   ```
 ## First run
 
-To setup this custom_component, login to your Rpi and cd to the directory where you have copied the file.
-- Edit the file device.py to add your GT125 IP address at the line 12.
-```yaml
-SERVER = '192.168.x.x' 
-```
-- Add your device ID, written on the back of your GT125, on line 16. (without space) You will need to write it the same way in your configuration.yaml file.
-- Install required library crc8.py with command: sudo pip3 install crc8. For python3.7 use command: sudo python3.7 -m pip install crc8
+To setup this custom_component, login to your Rpi and cd to the directory where you have copied the file. You don't need to edit the file device.py anymore but you will need to have the following data handy:
+- IP adress of the GT125,
+- GT125 device ID, written on the back of the device,
+- Port number to connect to the GT125. should be 4550 (default),
+- the required library crc8.py should be installed automatically. if not use this command: sudo pip3 install crc8. For python3.7,  use command: sudo python3.7 -m pip install crc8
 
-Execute the command: python3 device.py in console (for python3.7: python3.7 device.py). This is required to get the Api_Key and the deviceID for each Sinopé devices connected to your GT125. On first run, device.py send a ping request to the GT125 and it will ask you to push de "WEB" button on the GT125. 
-This will give you the Api Key that you need to write on line 14, 
-```yaml
-api_key = "xxxxxxxxxxxxxxxx" 
-```
-- make sure your GT125 use the port 4550, this is the one by default or change line 18 accordingly.
-- once you get your Api_Key you will start to get the device_id for all devices connected to your GT125.  See devices discovery bellow.
+Execute the command: 'sudo python3 device.py' in console (for python3.7: 'sudo python3.7 device.py'). Sudo is required for file permission fix. This is required to install the data above and to get the Api_Key and later the deviceID for each Sinopé devices connected to your GT125. On first run, device.py ask for IP, Api ID and port number then send a ping request to the GT125. It will then ask you to push de "WEB" button on the GT125. This will give you the Api Key.
+
+- Once you get your Api_Key, all data will be written in the config file 'config/.storage/sinope_devices.json'.
+- On the next run of device.py, you will start to get the device_id for all devices connected to your GT125.  See devices discovery bellow.
 
 You're ready to setup your Sinopé devices.
 
@@ -121,17 +115,18 @@ For the data report request it is possible to send data to all device at once by
 It is used to send time, date, sunset and sunrise hour, outside temperature, set all device to away mode, etc, broadcasted to all device.
 
 ## Devices discovery
-Look like the GT125 use a different deviceID then Neviweb portal. Once you have your Api_key written in device.py, you will need to run it to request deviceID for each devices on your network one by one. The program will wait for you to push on both button of your device to revceive there deviceID. Then, it will ask for device data like name, type and connected watt load. To get the list of devices types just type "h" when asked for device type. This will display all known types and then ask for your device type. If you don't have all information just hit enter to leave those fields blank. It will be possible to add missing data later. All devices ID and data will be written in file devices.json and that file will be moved to config/.storage/sinope_devices.json to insure that any new update won't overwrite it. Once you have all your devices, hit "q" at the end to quit the program. Edit devices.json and add the name, type and wattage (for light devices) for each devices. Light connected watt load is not measured by the light devices but instead written in Neviweb on setup of light devices. We need to write it to devices.json (kind of Neviweb portal equivalent) to finish the devices setup. ex:
+Look like the GT125 use a different deviceID then the Neviweb portal. Once you have your Api_key written in sinope_devices.json, you will need to run device.py to request deviceID for each devices on your network one by one. The program will wait for you to push on both button of your device to revceive there deviceID. Then, device.py will ask for device data like name, type and connected watt load. To get the list of devices types just type "h" when asked for device type. This will display all known types and then ask for your device type. If you don't have all information just hit enter to leave those fields blank. It will be possible to add missing data later. All devices ID and data will be written in the file 'config/.storage/sinope_devices.json' to insure that any new update won't overwrite it. Once you have all your devices, hit "q" at the end to quit the program. Edit 'config/.storage/sinope_devices.json' and add the name, type and wattage (for light devices) for each devices if needed. Light connected watt load is not measured by the light devices but instead written in Neviweb devices on setup of light devices. We need to write it to devices.json (kind of Neviweb portal equivalent) to finish the devices setup. ex:
 
 ```yaml
+["IP", "Api Key", "Api ID", "PORT"] <- do not erase this line
 ["id", "name", "type", "watt"] <- do not erase or edit this line
 ["00470100", " ", " ", " "] <- once discovered by device.py, add devices info between the " "
 ["2e320100", "Office heating", "10", " "] <- thermostat ex.
 ["5a2c0100", "Office light", "102", "60"] <- light ex.
-["6a560100", "Outside timer", "120", " "] <- power switch ex.
+["6a560100", "Outside timer", "120", " "] <- power control ex.
 ["00470100", "Dimmer TV Room", "112", "110"] <- Dimmer ex.
 ```
-For power switch devices, RM3250RF and RM3200RF, you need to push on the top blue ligth to get the deviceID.
+For power switch devices, RM3250RF and RM3200RF, you need to push on the top blue ligth (with the wifi logo) to get the deviceID.
 Each time you will add a new device to your GT125 you will need to run that setup.
 
 ## Troubleshooting

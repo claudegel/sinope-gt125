@@ -35,19 +35,16 @@ sinope:
   scan_interval: 120 #you can go down to 60 if you want depending on how many devices you have to update. default set to 180
 ```
 ## First run
-To setup this custom_component, login to your Rpi and cd to the directory where you have copied the file.
-- Edit the file device.py to add your GT125 IP address at the line 12.
-```yaml
-SERVER = '192.168.x.x' 
-```
-- Add your GT125 ID, written on the back of your device, on line 16. (without space) 
+To setup this custom_component, login to your Rpi and cd to the directory where you have copied the file. You don't need to edit the file device.py anymore but you will need to have the following data handy:
+- IP adress of the GT125,
+- GT125 device ID, written on the back of the device,
+- Port number to connect to the GT125. should be 4550 (default),
+- the required library crc8.py should be installed automatically. if not use this command: sudo pip3 install crc8. For python3.7,  use command: sudo python3.7 -m pip install crc8
 
-Execute the command: python3 device.py. (for Python3.7 the command is python3.7 device.py) This is required to get the Api_Key and the deviceID for each Sinopé devices connected to your GT125. On first run, device.py send a ping request to the GT125 and it will ask you to push de "WEB" button on the GT125. 
-This will give you the Api Key that you need to write on line 14, 
-```yaml
-api_key = "xxxxxxxxxxxxxxxx" 
-```
-- make sure your GT125 use the port 4550, this is the one by default or change line 18 accordingly.
+Execute the command: 'sudo python3 device.py'. (for Python3.7, the command is 'sudo python3.7 device.py') This is required to get the Api_Key and the deviceID for each Sinopé devices connected to your GT125. On first run, device.py will ask you to enter the IP address of the GT125, the API ID written on the back of your GT125 and the port number (default 4550). It will send a ping request to the GT125 and will ask you to push de "WEB" button on the GT125. 
+This will give you the Api Key. Then, device.py will create file 'config/.storage/sinope_devices.json' and write two line in it to store the above data.
+
+- make sure your GT125 use the port 4550, this is the one by default.
 
 I've put lots of comment in the code so I think you will understand.
 
@@ -70,10 +67,11 @@ For the data report request it is possible to send data to all device at once by
 It is used to send time, date, sunset and sunrise hour, outside temperature, set all device to away mode, etc, broadcasted to all device.
 
 ## Devices discovery
-Look like the GT125 use a different deviceID then Neviweb. Once you have your Api_key written in device.py, you will need to run it to request deviceID for each devices on your network one by one. Device.py will ask for device name, type and connected watt load (for light and switch) for each device discovered. Program will loop to discover each device one by one. When finished, type "q" to leave the program. for each device discovery,the program will wait for you to push on both button of your device to receive the deviceID of that device. All devices id and data will be written in file devices.json and that file will be moved to config/.storage/sinope_devices.json to insure that any new update won't overwrite it. Once you have all your devices, edit devices.json and change the name, type and wattage (for light devices), if needed, for each devices. For device type you can get them at the top of each file climate.py, light.py and switch.py. You can also get them by tiping "h" when prompted in device.py. Light connected watt load is not measured by the light devices but instead written in Neviweb on setup of light devices. We need to write it to devices.json (kind of Neviweb equivalent) to finish the devices setup.
+Look like the GT125 use a different deviceID then Neviweb. Once you have your Api_key written in sinope_devices.json, you will need to run it to request deviceID for each devices on your network one by one. Device.py will ask for device name, type and connected watt load (for light and switch) for each device discovered. Program will loop to discover each device one by one. When finished, type "q" to leave the program. for each device discovery,the program will wait for you to push on both button of your device to receive the deviceID of that device. All devices id and data will be written in file sinope_devices.json and that file will be moved to config/.storage/sinope_devices.json to insure that any new update won't overwrite it. Once you have all your devices, edit sinope_devices.json and change the name, type and wattage (for light devices), if needed, for each devices. For device type you can get them at the top of each file climate.py, light.py and switch.py. You can also get them by typing "h" when prompted for type in device.py. Light connected watt load is not measured by the light devices but instead written in Neviweb on setup of light devices. We need to write it to devices.json (kind of Neviweb equivalent) to finish the devices setup.
 
 ```yaml
-["id", "name", "type", "watt"] <- do not edit this line
+["IP", "Api Key", "Api ID", "PORT"] <- do not erase this line
+["id", "name", "type", "watt"] <- do not erase or edit this line
 ["00470100", " ", " ", " "] <- once discovered by device.py, add devices info between the " "
 ["2e320100", "Office heating", "10", " "] <- thermostat ex.
 ["5a2c0100", "Office light", "102", "60"] <- light ex.

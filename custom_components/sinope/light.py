@@ -40,11 +40,11 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     """Set up the sinope light."""
     data = hass.data[sinope.DATA_DOMAIN]
     dev_list = []
-    with open('/home/homeassistant/.homeassistant/.storage/sinope_devices.json') as f: #will be loaded from config later
+    with open('/home/homeassistant/.homeassistant/.storage/sinope_devices.json') as f:
         for line in f:
             dev_list.append(json.loads(line))         
     f.close()
-    i = 1
+    i = 2
     tot = len(dev_list)
     devices = []
     for a in dev_list:

@@ -7,15 +7,9 @@ import json
 import io
 import shutil
 import os
+import pwd
+import grp
 
-### data that will come from HA config
-SERVER = 'XXX.XXX.XXX.XXX' #ip address of the GT125
-# write key here once you get it with the ping request (first run)
-Api_Key = None # ex: "801C0E0F12C1001A"
-# write the ID printed on your GT125, no space
-Api_ID = "xxxxxxxxxxxxxxxx"
-# Port number to reach your GT125
-PORT = 4550
 CONFIG = "/home/homeassistant/.homeassistant/.storage/" #add your config dit if different
 
 def invert(id):
@@ -125,19 +119,83 @@ def send_key_request(data):
     finally:
       sock.close()
 
-# send ping to GT125      
+def write_config(ip,key,id,port):
+    with open(CONFIG+'sinope_devices.json', 'w', encoding='utf8') as outfile:
+      data = '["'+ip+'", "'+key+'", "'+id+'", '+str(port)+']' 
+      outfile.write(data)
+      outfile.write('\n')
+      data2 = '["id", "name", "type", "watt"]'
+      outfile.write(data2)
+    outfile.close()
+    return True
+  
+def read_config():
+    conf_list = []
+    with open(CONFIG+'sinope_devices.json') as f:
+        for line in f:
+            conf_list.append(json.loads(line))         
+    f.close()
+    return conf_list[0]
+  
+def get_ip():
+    ip = ""
+    while ip == "":
+      print('What is your GT125 IP address: xxx.xxx.xxx.xxx')
+      ip = input()
+      if ip == "":
+        print("You must enter a valid IP address")
+      else:
+        return ip
+     
+def get_id():
+    id = ""
+    while id == "":
+      print('What is your GT125 ID (written on the back of the device)')
+      id = input()
+      if id == "":
+        print("You must enter a valid ID code")
+      else:
+        return id
+
+def get_port():
+    port = 0
+    while port == 0:
+      print("Write your GT125 port number (default: 4550)")
+      port = input()
+      print("port="+port)
+      if port == "":
+        print("You must enter a valid port number")
+        port = 0
+      else:
+        return int(port)
+
+# send ping to GT125 
+if os.path.exists(CONFIG+'sinope_devices.json') == False:
+  SERVER = get_ip()
+  PORT = get_port()
+  Api_ID = get_id()
+  Api_Key = None
+else:
+  conf = read_config()
+  PORT = int("{}".format(conf[3]))
+  SERVER = "{}".format(conf[0])
+  Api_Key ="{}".format(conf[1])
+  Api_ID = "{}".format(conf[2])
+
 if binascii.hexlify(send_ping_request(ping_request())) == b'55000200130021':
     if Api_Key == None:
-      if os.path.exists(CONFIG+'sinope_devices.json') == False:
-        shutil.copy('devices.json', CONFIG+'sinope_devices.json')
-        print('Config file copied to: '+CONFIG)
         print("ok we can send the api_key request\n")
         print("push the GT125 <web> button")
-        print('Api key : ',retreive_key(binascii.hexlify(send_key_request(key_request(invert(Api_ID))))))
-        print("Copy the value between the b'...' in the Api_Key, line 14, replacing the <None> value")
-        print("and copy it to your sinope section in your configuration.yaml file, Api_Key: ")
-      else:
-        print("Config file allready exist... Please reenter your Api_key on line 14")
+        Api_Key = retreive_key(binascii.hexlify(send_key_request(key_request(invert(Api_ID)))))[0:16].decode("utf-8")
+        print('Api key : ',Api_Key)
+        print("Writing config to file "+CONFIG+"sinope_devices.json ...")
+        write_config(SERVER,Api_Key,Api_ID,PORT)
+        owner='homeassistant'
+        group='homeassistant'
+        uid = pwd.getpwnam(owner).pw_uid
+        gid = grp.getgrnam(group).gr_gid
+        os.chown(CONFIG+"sinope_devices.json",uid,gid)
+        print("Run this program again to add your devices")
     else:
       # finding device ID, one by one
       while True:
