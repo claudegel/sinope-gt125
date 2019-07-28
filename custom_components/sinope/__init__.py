@@ -238,6 +238,8 @@ def get_temperature(data):
         tc2 = data[46:48]
         tc4 = data[48:50]
         latemp = tc4+tc2
+	if latemp == "7ffc":
+            return 0
         return round(float.fromhex(latemp)*0.01, 2)
   
 def to_celcius(temp):
