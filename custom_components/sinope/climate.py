@@ -14,39 +14,41 @@ import time
 
 import custom_components.sinope as sinope
 from . import (SCAN_INTERVAL)
-from homeassistant.components.climate import (ClimateDevice, ATTR_TEMPERATURE,
-    ATTR_AWAY_MODE, ATTR_OPERATION_MODE, ATTR_OPERATION_LIST, ATTR_CURRENT_TEMPERATURE)
-from homeassistant.components.climate.const import (STATE_HEAT, 
-    STATE_IDLE, STATE_AUTO, STATE_MANUAL, SUPPORT_TARGET_TEMPERATURE,
-    SUPPORT_OPERATION_MODE, SUPPORT_AWAY_MODE, SUPPORT_ON_OFF)
-from homeassistant.const import (TEMP_CELSIUS, TEMP_FAHRENHEIT, STATE_OFF)
+from homeassistant.components.climate import (ClimateDevice)
+from homeassistant.components.climate.const import (HVAC_MODE_HEAT, 
+    HVAC_MODE_OFF, HVAC_MODE_AUTO, SUPPORT_TARGET_TEMPERATURE, 
+    SUPPORT_PRESET_MODE, PRESET_AWAY, PRESET_NONE, CURRENT_HVAC_HEAT, 
+    CURRENT_HVAC_IDLE, CURRENT_HVAC_OFF)
+from homeassistant.const import (TEMP_CELSIUS, TEMP_FAHRENHEIT, ATTR_TEMPERATURE)
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 
 _LOGGER = logging.getLogger(__name__)
 
-SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_OPERATION_MODE |
-    SUPPORT_AWAY_MODE | SUPPORT_ON_OFF)
+SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE)
 
 DEFAULT_NAME = "sinope climate"
 
-STATE_STANDBY = 'bypass'
-STATE_AWAY = 'away'
-SINOPE_STATE_AWAY = 5
-SINOPE_STATE_OFF = 0
-SINOPE_TO_HA_STATE = {
-    0: STATE_OFF,
-    2: STATE_MANUAL,
-    3: STATE_AUTO,
-    5: STATE_AWAY,
-    129: STATE_STANDBY,
-    131: STATE_STANDBY,
-    133: STATE_STANDBY
-}
-HA_TO_SINOPE_STATE = {
-    value: key for key, value in SINOPE_TO_HA_STATE.items()
-}
-OPERATION_LIST = [STATE_OFF, STATE_MANUAL, STATE_AUTO, STATE_AWAY, STATE_STANDBY]
+SINOPE_MODE_OFF = 0
+SINOPE_MODE_FREEZE_PROTECT = 1
+SINOPE_MODE_MANUAL = 2
+SINOPE_MODE_AUTO = 3
+SINOPE_MODE_AWAY = 5
+
+SINOPE_BYPASS_FLAG = 128
+SINOPE_BYPASSABLE_MODES = [SINOPE_MODE_FREEZE_PROTECT,
+                            SINOPE_MODE_AUTO,
+                            SINOPE_MODE_AWAY]
+SINOPE_MODE_AUTO_BYPASS = (SINOPE_MODE_AUTO | SINOPE_BYPASS_FLAG)
+
+SUPPORTED_HVAC_MODES = [HVAC_MODE_OFF, HVAC_MODE_AUTO, HVAC_MODE_HEAT]
+
+PRESET_BYPASS = 'temporary'
+PRESET_MODES = [
+    PRESET_NONE,
+    PRESET_AWAY,
+    PRESET_BYPASS
+]
 
 IMPLEMENTED_DEVICE_TYPES = [10, 20, 21]
 
@@ -93,7 +95,6 @@ class SinopeThermostat(ClimateDevice):
         self._alarm = None
         self._operation_mode = 2
         self._heat_level = None
-        self._is_away = False
         _LOGGER.debug("Setting up %s: %s", self._name, self._id)
 
     def update(self):
@@ -112,11 +113,9 @@ class SinopeThermostat(ClimateDevice):
             device_data["heatLevel"] is not None else 0
         self._alarm = device_data["alarm"]
         self._rssi = device_data["rssi"]
-        self._operation_mode = device_data["mode"]
-        if device_data["mode"] != SINOPE_STATE_AWAY:
-            self._is_away = False
-        else:
-            self._is_away = True
+        self._operation_mode = device_data["mode"] if \
+            device_data["mode"] is not None else SINOPE_MODE_MANUAL
+
         device_info = self._client.get_climate_device_info(self._id)
         self._wattage = device_info["wattage"]
         self._wattage_override = device_info["wattageOverride"]
@@ -143,15 +142,6 @@ class SinopeThermostat(ClimateDevice):
     def name(self):
         """Return the name of the thermostat."""
         return self._name
-
-    @property
-    def state(self):
-        """Return current state i.e. heat, off, idle."""
-        if self.is_on:
-            return STATE_HEAT
-        if self._operation_mode == SINOPE_STATE_OFF:
-            return STATE_OFF
-        return STATE_IDLE
 
     @property
     def device_state_attributes(self):
@@ -184,14 +174,20 @@ class SinopeThermostat(ClimateDevice):
         return TEMP_CELSIUS
 
     @property
-    def current_operation(self):
-        """Return current operation i.e. off, auto, manual."""
-        return self.to_hass_operation_mode(self._operation_mode)
+    def hvac_mode(self):
+        """Return current operation"""
+        if self._operation_mode == SINOPE_MODE_OFF:
+            return HVAC_MODE_OFF
+        elif self._operation_mode in [SINOPE_MODE_AUTO, 
+                                      SINOPE_MODE_AUTO_BYPASS]:
+            return HVAC_MODE_AUTO
+        else:
+            return HVAC_MODE_HEAT
 
     @property
-    def operation_list(self):
+    def hvac_modes(self):
         """Return the list of available operation modes."""
-        return OPERATION_LIST
+        return SUPPORTED_HVAC_MODES
 
     @property
     def current_temperature(self):
@@ -204,14 +200,29 @@ class SinopeThermostat(ClimateDevice):
         return self._target_temp
 
     @property
-    def is_away_mode_on(self):
-        return self._is_away
+    def preset_modes(self):
+        """Return available preset modes."""
+        return PRESET_MODES
+      
+    @property
+    def preset_mode(self):
+        """Return current preset mode."""
+        if self._operation_mode & SINOPE_BYPASS_FLAG == SINOPE_BYPASS_FLAG:
+            return PRESET_BYPASS
+        elif self._operation_mode == SINOPE_MODE_AWAY:
+            return PRESET_AWAY
+        else:
+            return PRESET_NONE
 
     @property
-    def is_on(self):
-        if self._heat_level == None:
-            return False
-        return self._heat_level > 0
+    def hvac_action(self):
+        """Return current HVAC action."""
+        if self._operation_mode == SINOPE_MODE_OFF:
+            return CURRENT_HVAC_OFF
+        elif self._heat_level == 0:
+            return CURRENT_HVAC_IDLE
+        else:
+            return CURRENT_HVAC_HEAT
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
@@ -221,42 +232,33 @@ class SinopeThermostat(ClimateDevice):
         self._client.set_temperature(self._id, temperature)
         self._target_temp = temperature
 
-    def set_operation_mode(self, operation_mode):
-        """Set new operation mode."""
-        mode = self.to_sinope_operation_mode(operation_mode)
-        if mode == 3: #auto mode
-            self._client.send_time(self._id)
-        self._client.set_mode(self._id, self._type, mode)
-
-    def to_sinope_operation_mode(self, mode):
-        """Translate hass operation modes to sinope modes."""
-        if mode in HA_TO_SINOPE_STATE:
-            return HA_TO_SINOPE_STATE[mode]
-        _LOGGER.error("Operation mode %s could not be mapped to sinope", mode)
-        return None
-        
-    def to_hass_operation_mode(self, mode):
-        """Translate sinope operation modes to hass operation modes."""
-        if mode in SINOPE_TO_HA_STATE:
-            return SINOPE_TO_HA_STATE[mode]
-        _LOGGER.error("Operation mode %s could not be mapped to hass", mode)
-        return None
-    
-    def turn_away_mode_on(self):
-        """Turn away mode on."""
-        self._client.set_away_mode(self._id, 2)
-        self._is_away = True
-
-    def turn_away_mode_off(self):
-        """Turn away mode off."""
-        self._client.set_away_mode(self._id, 0)
-        self._is_away = False
-        
-    def turn_off(self):
-        """Turn device off."""
-        self._client.set_mode(self._id, self._type, SINOPE_STATE_OFF)
-
-    def turn_on(self):
-        """Turn device on (auto mode)."""
+    def set_hvac_mode(self, hvac_mode):
+        """Set new hvac mode."""
         self._client.send_time(self._id)
-        self._client.set_mode(self._id, self._type, 3)
+        if hvac_mode == HVAC_MODE_OFF:
+            self._client.set_mode(self._id, self._type, SINOPE_MODE_OFF)
+        elif hvac_mode == HVAC_MODE_HEAT:
+            self._client.set_mode(self._id, self._type, SINOPE_MODE_MANUAL)
+        elif hvac_mode == HVAC_MODE_AUTO:
+            self._client.set_mode(self._id, self._type, SINOPE_MODE_AUTO)
+        else:
+            _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
+
+    def set_preset_mode(self, preset_mode):
+        """Activate a preset."""
+        if preset_mode == self.preset_mode:
+            return
+
+        if preset_mode == PRESET_AWAY:
+            """Set away mode on device, away_on = 2 away_off =0"""
+            self._client.set_away_mode(self._id, 2)
+        elif preset_mode == PRESET_BYPASS:
+            if self._operation_mode in SINOPE_BYPASSABLE_MODES:
+                self._client.set_away_mode(self._id, 0)      
+                self._client.set_mode(self._id, self._type, self._operation_mode | 
+                SINOPE_BYPASS_FLAG)
+        elif preset_mode == PRESET_NONE:
+            # Re-apply current hvac_mode without any preset
+            self.set_hvac_mode(self.hvac_mode)
+        else:
+            _LOGGER.error("Unable to set preset mode: %s.", preset_mode)

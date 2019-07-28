@@ -238,6 +238,8 @@ def get_temperature(data):
         tc2 = data[46:48]
         tc4 = data[48:50]
         latemp = tc4+tc2
+	if latemp == "7ffc":
+            return 0
         return round(float.fromhex(latemp)*0.01, 2)
   
 def to_celcius(temp):
@@ -260,7 +262,7 @@ def get_away(data):
     tc2 = data[46:48]
     return int(float.fromhex(tc2))  
 
-def set_mode(mode): #0=off,1=freeze protect,2=manual,3=auto,5=away
+def put_mode(mode): #0=off,1=freeze protect,2=manual,3=auto,5=away
     return "01"+bytearray(struct.pack('<i', mode)[:1]).hex()
  
 def get_mode(data):
@@ -598,9 +600,9 @@ class SinopeClient(object):
         # prepare data
         try:
             if int(device_type) < 100:
-                response = get_result(bytearray(send_request(data_write_request(self, data_write_command,device_id,data_mode,set_mode(mode)))).hex())
+                response = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_mode,put_mode(mode)))).hex())
             else:
-                response = get_result(bytearray(send_request(data_write_request(self, data_write_command,device_id,data_light_mode,set_mode(mode)))).hex())
+                response = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_light_mode,put_mode(mode)))).hex())
         except OSError:
             raise PySinopeError("Cannot set device operation mode")
         return response
