@@ -600,9 +600,9 @@ class SinopeClient(object):
         # prepare data
         try:
             if int(device_type) < 100:
-                response = get_result(bytearray(send_request(data_write_request(self, data_write_command,device_id,data_mode,put_mode(mode)))).hex())
+                response = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_mode,put_mode(mode)))).hex())
             else:
-                response = get_result(bytearray(send_request(data_write_request(self, data_write_command,device_id,data_light_mode,put_mode(mode)))).hex())
+                response = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_light_mode,put_mode(mode)))).hex())
         except OSError:
             raise PySinopeError("Cannot set device operation mode")
         return response
