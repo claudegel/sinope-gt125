@@ -170,9 +170,10 @@ def get_port():
         return int(port)
 
 # send ping to GT125 
-if CONFIG == None:
-  print("Please edit device.py, line 13,14 and select the CONFIG directory according to your installation\n")
-  sys.exit()
+Try:
+  CONFIG
+except NameError:
+  print("Please edit device.py, line 13,14 and select the CONFIG directory according to your installation!\n")
 
 if os.path.exists(CONFIG+'sinope_devices.json') == False:
   SERVER = get_ip()
