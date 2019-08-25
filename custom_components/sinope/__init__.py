@@ -20,7 +20,7 @@ from homeassistant.util import Throttle
 
 #REQUIREMENTS = ['PY_Sinope==0.1.7']
 REQUIREMENTS = ['crc8==0.0.5']
-VERSION = '1.0.1'
+VERSION = '1.0.2'
 
 DOMAIN = 'sinope'
 DATA_DOMAIN = 'data_' + DOMAIN
