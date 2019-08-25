@@ -38,7 +38,7 @@ IMPLEMENTED_DEVICE_TYPES = DEVICE_TYPE_LIGHT + DEVICE_TYPE_DIMMER
 
 def confpath(self):
     """Return config path."""
-return f"{self.system.config_path}/.storage/"
+    return f"{self.system.config_path}/.storage/"
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
     """Set up the sinope light."""
