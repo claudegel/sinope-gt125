@@ -195,11 +195,12 @@ if binascii.hexlify(send_ping_request(ping_request())) == b'55000200130021':
         print('Api key : ',Api_Key)
         print("Writing config to file "+CONFIG+"sinope_devices.json ...")
         write_config(SERVER,Api_Key,Api_ID,PORT)
-        owner='homeassistant'
-        group='homeassistant'
-        uid = pwd.getpwnam(owner).pw_uid
-        gid = grp.getgrnam(group).gr_gid
-        os.chown(CONFIG+"sinope_devices.json",uid,gid)
+        if CONFIG == "/home/homeassistant/.homeassistant/.storage/":
+          owner='homeassistant'
+          group='homeassistant'
+          uid = pwd.getpwnam(owner).pw_uid
+          gid = grp.getgrnam(group).gr_gid
+          os.chown(CONFIG+"sinope_devices.json",uid,gid)
         print("Run this program again to add your devices")
     else:
       # finding device ID, one by one
