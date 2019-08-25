@@ -10,8 +10,8 @@ import os
 import pwd
 import grp
 
-CONFIG = "/home/homeassistant/.homeassistant/.storage/" #add your config dit if different
-
+#CONFIG = "/home/homeassistant/.homeassistant/.storage/" #uncomment this line if you are on Hassbian
+#CONFIG = "/config/.storage/" # uncomment this line if you are on Hass.io
 def invert(id):
     """The Api_ID must be sent in reversed order"""
     k1 = id[14:16]
@@ -170,6 +170,10 @@ def get_port():
         return int(port)
 
 # send ping to GT125 
+if CONFIG == None:
+  print("Please edit device.py, line 13,14 and select the CONFIG directory according to your installation\n")
+  break
+
 if os.path.exists(CONFIG+'sinope_devices.json') == False:
   SERVER = get_ip()
   PORT = get_port()
