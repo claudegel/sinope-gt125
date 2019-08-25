@@ -34,11 +34,16 @@ SINOPE_TO_HA_STATE = {
 
 IMPLEMENTED_DEVICE_TYPES = [120] #power control device
 
+def confpath(self):
+    """Return config path."""
+    return f"{self.system.config_path}/.storage/"
+
 def setup_platform(hass, config, add_devices, discovery_info=None):
     """Set up the Sinope switch."""
     data = hass.data[sinope.DATA_DOMAIN]
+    CONF_file = self.confpath+"sinope_devices.json"
     dev_list = []
-    with open('/home/homeassistant/.homeassistant/.storage/sinope_devices.json') as f:
+    with open(CONF_file) as f:
         for line in f:
             dev_list.append(json.loads(line))         
     f.close()
