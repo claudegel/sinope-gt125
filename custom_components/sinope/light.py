@@ -36,11 +36,16 @@ DEVICE_TYPE_DIMMER = [112]
 DEVICE_TYPE_LIGHT = [102]
 IMPLEMENTED_DEVICE_TYPES = DEVICE_TYPE_LIGHT + DEVICE_TYPE_DIMMER
 
+def confpath(self):
+    """Return config path."""
+return f"{self.system.config_path}/.storage/"
+
 def setup_platform(hass, config, add_devices, discovery_info=None):
     """Set up the sinope light."""
     data = hass.data[sinope.DATA_DOMAIN]
+    CONF_file = self.confpath+"sinope_devices.json"
     dev_list = []
-    with open('/home/homeassistant/.homeassistant/.storage/sinope_devices.json') as f:
+    with open(CONF_file) as f:
         for line in f:
             dev_list.append(json.loads(line))         
     f.close()
