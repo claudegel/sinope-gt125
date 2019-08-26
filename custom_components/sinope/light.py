@@ -12,7 +12,7 @@ import voluptuous as vol
 import time
 
 import custom_components.sinope as sinope
-from . import (SCAN_INTERVAL)
+from . import (SCAN_INTERVAL, CONFDIR)
 from homeassistant.components.light import (Light, ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT, SUPPORT_BRIGHTNESS)
 from datetime import timedelta
@@ -36,14 +36,10 @@ DEVICE_TYPE_DIMMER = [112]
 DEVICE_TYPE_LIGHT = [102]
 IMPLEMENTED_DEVICE_TYPES = DEVICE_TYPE_LIGHT + DEVICE_TYPE_DIMMER
 
-def confpath(self):
-    """Return config path."""
-    return f"{self.system.config_path}/.storage/"
-
 def setup_platform(hass, config, add_devices, discovery_info=None):
     """Set up the sinope light."""
     data = hass.data[sinope.DATA_DOMAIN]
-    CONF_file = self.confpath+"sinope_devices.json"
+    CONF_file = CONFDIR + "sinope_devices.json"
     dev_list = []
     with open(CONF_file) as f:
         for line in f:
