@@ -170,7 +170,7 @@ def get_port():
         return int(port)
 
 # send ping to GT125 
-Try:
+try:
   CONFIG
 except NameError:
   print("Please edit device.py, line 13,14 and select the CONFIG directory according to your installation!\n")
