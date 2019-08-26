@@ -3,7 +3,7 @@ Support for Sinope thermostat.
 type 10 = thermostat TH1120RF 3000W and 4000W
 type 20 = thermostat TH1300RF 3600W floor, TH1500RF double pole thermostat
 type 21 = thermostat TH1400RF low voltage
-For more details about this platform, please refer to the documentation at  
+For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
 import json
@@ -13,7 +13,7 @@ import voluptuous as vol
 import time
 
 import custom_components.sinope as sinope
-from . import (SCAN_INTERVAL)
+from . import (SCAN_INTERVAL, CONFDIR)
 from homeassistant.components.climate import (ClimateDevice)
 from homeassistant.components.climate.const import (HVAC_MODE_HEAT, 
     HVAC_MODE_OFF, HVAC_MODE_AUTO, SUPPORT_TARGET_TEMPERATURE, 
@@ -51,15 +51,11 @@ PRESET_MODES = [
 ]
 
 IMPLEMENTED_DEVICE_TYPES = [10, 20, 21]
-
-def confpath(self):
-    """Return config path."""
-    return f"{self.system.config_path}/.storage/"
-    
+   
 def setup_platform(hass, config, add_devices, discovery_info=None):
     """Set up the sinope thermostats."""
     data = hass.data[sinope.DATA_DOMAIN]
-    CONF_file = self.confpath+"sinope_devices.json"
+    CONF_file = CONFDIR + "sinope_devices.json"
     dev_list = []
     with open(CONF_file) as f:
         for line in f:
