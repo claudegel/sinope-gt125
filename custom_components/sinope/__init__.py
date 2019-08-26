@@ -8,7 +8,7 @@ import socket
 import sys
 import pytz
 from astral import Astral
-import crc8
+from . import crc8
 from datetime import datetime, timedelta
 
 import voluptuous as vol
