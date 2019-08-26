@@ -1,3 +1,4 @@
+import os
 import logging
 import requests
 import json
@@ -52,6 +53,10 @@ def setup(hass, hass_config):
     """Set up sinope."""
     data = SinopeData(hass_config[DOMAIN])
     hass.data[DATA_DOMAIN] = data
+
+    global CONFDIR
+    CONFDIR =  os.path.abspath(os.curdir) + "/.storage/"
+    _LOGGER.debug("Setting config location to: %s", CONFDIR)
 
     global SCAN_INTERVAL 
     SCAN_INTERVAL = hass_config[DOMAIN].get(CONF_SCAN_INTERVAL)
