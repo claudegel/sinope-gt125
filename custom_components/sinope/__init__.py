@@ -1,3 +1,4 @@
+import os
 import logging
 import requests
 import json
@@ -7,7 +8,7 @@ import socket
 import sys
 import pytz
 from astral import Astral
-import crc8
+from . import crc8
 from datetime import datetime, timedelta
 
 import voluptuous as vol
@@ -20,7 +21,7 @@ from homeassistant.util import Throttle
 
 #REQUIREMENTS = ['PY_Sinope==0.1.7']
 REQUIREMENTS = ['crc8==0.0.5']
-VERSION = '1.0.0'
+VERSION = '1.0.2'
 
 DOMAIN = 'sinope'
 DATA_DOMAIN = 'data_' + DOMAIN
@@ -52,6 +53,14 @@ def setup(hass, hass_config):
     """Set up sinope."""
     data = SinopeData(hass_config[DOMAIN])
     hass.data[DATA_DOMAIN] = data
+
+    global CONFDIR
+    if os.path.isdir("/home/homeassistant/.homeassistant"):
+      CONFDIR = "/home/homeassistant/.homeassistant/.storage/"
+    else:
+      CONFDIR = "/config/.storage/"
+ 
+    _LOGGER.debug("Setting config location to: %s", CONFDIR)
 
     global SCAN_INTERVAL 
     SCAN_INTERVAL = hass_config[DOMAIN].get(CONF_SCAN_INTERVAL)

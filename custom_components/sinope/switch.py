@@ -11,7 +11,7 @@ import voluptuous as vol
 import time
 
 import custom_components.sinope as sinope
-from . import (SCAN_INTERVAL)
+from . import (SCAN_INTERVAL, CONFDIR)
 from homeassistant.components.switch import (SwitchDevice, 
     ATTR_TODAY_ENERGY_KWH, ATTR_CURRENT_POWER_W)
 from datetime import timedelta
@@ -37,8 +37,9 @@ IMPLEMENTED_DEVICE_TYPES = [120] #power control device
 def setup_platform(hass, config, add_devices, discovery_info=None):
     """Set up the Sinope switch."""
     data = hass.data[sinope.DATA_DOMAIN]
+    CONF_file = CONFDIR + "sinope_devices.json"
     dev_list = []
-    with open('/home/homeassistant/.homeassistant/.storage/sinope_devices.json') as f:
+    with open(CONF_file) as f:
         for line in f:
             dev_list.append(json.loads(line))         
     f.close()

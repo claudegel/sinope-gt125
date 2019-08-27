@@ -10,8 +10,8 @@ import os
 import pwd
 import grp
 
-CONFIG = "/home/homeassistant/.homeassistant/.storage/" #add your config dit if different
-
+#CONFIG = "/home/homeassistant/.homeassistant/.storage/" #uncomment this line if you are on Hassbian
+#CONFIG = "/config/.storage/" # uncomment this line if you are on Hass.io
 def invert(id):
     """The Api_ID must be sent in reversed order"""
     k1 = id[14:16]
@@ -170,6 +170,11 @@ def get_port():
         return int(port)
 
 # send ping to GT125 
+try:
+  CONFIG
+except NameError:
+  print("Please edit device.py, line 13,14 and select the CONFIG directory according to your installation!\n")
+
 if os.path.exists(CONFIG+'sinope_devices.json') == False:
   SERVER = get_ip()
   PORT = get_port()
@@ -190,11 +195,12 @@ if binascii.hexlify(send_ping_request(ping_request())) == b'55000200130021':
         print('Api key : ',Api_Key)
         print("Writing config to file "+CONFIG+"sinope_devices.json ...")
         write_config(SERVER,Api_Key,Api_ID,PORT)
-        owner='homeassistant'
-        group='homeassistant'
-        uid = pwd.getpwnam(owner).pw_uid
-        gid = grp.getgrnam(group).gr_gid
-        os.chown(CONFIG+"sinope_devices.json",uid,gid)
+        if CONFIG == "/home/homeassistant/.homeassistant/.storage/":
+          owner='homeassistant'
+          group='homeassistant'
+          uid = pwd.getpwnam(owner).pw_uid
+          gid = grp.getgrnam(group).gr_gid
+          os.chown(CONFIG+"sinope_devices.json",uid,gid)
         print("Run this program again to add your devices")
     else:
       # finding device ID, one by one
