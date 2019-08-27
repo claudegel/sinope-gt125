@@ -10,6 +10,10 @@ import os
 import pwd
 import grp
 
+if os.path.isdir("/home/homeassistant/.homeassistant"):
+  CONFIG = "/home/homeassistant/.homeassistant/.storage/"
+else:
+  CONFIG = "/config/.storage/"
 #CONFIG = "/home/homeassistant/.homeassistant/.storage/" #uncomment this line if you are on Hassbian
 #CONFIG = "/config/.storage/" # uncomment this line if you are on Hass.io
 def invert(id):
