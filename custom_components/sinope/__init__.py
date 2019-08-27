@@ -55,7 +55,11 @@ def setup(hass, hass_config):
     hass.data[DATA_DOMAIN] = data
 
     global CONFDIR
-    CONFDIR =  os.path.abspath(os.curdir) + "/.storage/"
+    if os.path.isdir("/home/homeassistant/.homeassistant"):
+      CONFDIR = "/home/homeassistant/.homeassistant/.storage/"
+    else:
+      CONFDIR = "/config/.storage/"
+ 
     _LOGGER.debug("Setting config location to: %s", CONFDIR)
 
     global SCAN_INTERVAL 
