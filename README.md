@@ -6,7 +6,7 @@ To support [HACS](https://community.home-assistant.io/t/custom-component-hacs/12
 
 If you already use this custom_component, make a backup of your file devices.json before first update via HACS. Devices.json will be removed. You'll need to copy your devices data to config/.storage/sinope_devices.json after first run of device.py (see below).
 # Hassbian vs Hass.io
-those two HA platform use different location for  configuration. Now we have updated Sinope-GT125 so it can detect which platform you are using and adjust config location automatically.
+Those two HA platform use different location for  configuration. Now we have updated Sinope-GT125 so it can detect which platform you are using and adjust config location automatically.
 
 # Home Assistant Sinope Custom Components (sinope-gt125)
 
