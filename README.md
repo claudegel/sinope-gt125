@@ -50,7 +50,7 @@ There are two methods to install this custom component:
   - After installing HACS, install 'Sinope GT125' from the store, and use the configuration.yaml example below.
 - Manually via direct download:
   - Download the zip file of this repository using the top right, green download button.
-  - Extract the zip file on your computer, then copy the entire `custom_components` folder inside your Home Assistant `config` directory (where you can find your `configuration.yaml` file).
+  - Extract the zip file on your computer, then copy the entire `custom_components` folder inside your Home Assistant «config» directory (where you can find your `configuration.yaml` file).
     - Hassbian: /home/homeassistant/.homeassistant/
     - Hass.io: /config/
   - Your «config» directory should look like this:
