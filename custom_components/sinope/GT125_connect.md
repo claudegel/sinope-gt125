@@ -23,7 +23,7 @@ The config folder is different depending if you are on Hassbian or Hass.io:
 - install sinope-GT125 via hacs store. It will be installed under «config»/custom_components/sinope
 
 ### Manually:
-Create a directory named sinope under custom_component in your HA setup.
+Create a directory named sinope under «config»/custom_components in your HA setup.
 
 Copy the files in the sinope directory to your «config»/custom_components/sinope directory.
 
