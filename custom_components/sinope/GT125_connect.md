@@ -1,7 +1,5 @@
 # Home Assistant Sinopé Custom Component with direct connection to your GT125
 
-The file pysinope.py is not needed anymore as the Sinope custom_component is working. I leave it there in case someone want to test outside of HA. Everything  have been ported in HA Sinope custom_component.
-
 ## Supported Devices
 
 Same as Neviweb custom_component.
@@ -17,10 +15,17 @@ Same as Neviweb custom_component.
   sudo python3.7 -m pip install crc8
   
 ## Installation
+The config folder is different depending if you are on Hassbian or Hass.io:
+ - Hassbian: /home/homeassistant/.homeassistant/
+ - Hass.io: /config/
+### Via HACS:
+- install hacs
+- install sinope-GT125 via hacs store. It will be installed under «config»/custom_components/sinope
 
+### Manually:
 Create a directory named sinope under custom_component in your HA setup.
 
-Copy the files in the sinope directory to your /home/homeassistant/.homeassistant/custom_components/sinope directory.
+Copy the files in the sinope directory to your «config»/custom_components/sinope directory.
 
 Once ready you will need to add entry for sinope in your configuration.yaml like this:
 
@@ -35,16 +40,14 @@ sinope:
   scan_interval: 120 #you can go down to 60 if you want depending on how many devices you have to update. default set to 180
 ```
 ## First run
-To setup this custom_component, login to your Rpi and cd to the directory where you have copied the file. You don't need to edit the file device.py anymore but you will need to have the following data handy:
+To setup this custom_component, login to your Rpi via SSH and cd to the directory where you have copied the file. You don't need to edit the file device.py anymore but you will need to have the following data handy:
 - IP adress of the GT125,
 - GT125 device ID, written on the back of the device,
 - Port number to connect to the GT125. should be 4550 (default),
 - the required library crc8.py should be installed automatically. if not use this command: sudo pip3 install crc8. For python3.7,  use command: sudo python3.7 -m pip install crc8
 
-Execute the command: 'sudo python3 device.py'. (for Python3.7, the command is 'sudo python3.7 device.py') This is required to get the Api_Key and the deviceID for each Sinopé devices connected to your GT125. On first run, device.py will ask you to enter the IP address of the GT125, the API ID written on the back of your GT125 and the port number (default 4550). It will send a ping request to the GT125 and will ask you to push de "WEB" button on the GT125. 
+Execute the command: 'sudo python3 device.py'. (for Python3.7, the command is 'sudo python3.7 device.py') This is required to get the Api_Key and the deviceID for each Sinopé devices connected to your GT125. For Hass.io you already run as root so you don't need sudo. On first run, device.py will ask you to enter the IP address of the GT125, the API ID written on the back of your GT125 and the port number (default 4550). It will send a ping request to the GT125 and will ask you to push de "WEB" button on the GT125. 
 This will give you the Api Key. Then, device.py will create file 'config/.storage/sinope_devices.json' and write two line in it to store the above data.
-
-- make sure your GT125 use the port 4550, this is the one by default.
 
 I've put lots of comment in the code so I think you will understand.
 
