@@ -400,6 +400,8 @@ def error_info(bug,device):
         _LOGGER.debug("in request for %s : Abort failed, request not found in queue.", device)
     elif bug == b'FA':
         _LOGGER.debug("in request for %s : Unknown device or destination deviceID is invalid or not a member of this network.", device)
+    elif bug == b'FD':
+        _LOGGER.debug("in request for %s : Error message reserved (%s), info not available.", device,bug)
     else:
         _LOGGER.debug("in request for %s : Unknown error (%s).", device,bug)
         
