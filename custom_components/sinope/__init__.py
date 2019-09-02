@@ -401,7 +401,7 @@ def error_info(bug,device):
     elif bug == b'FA':
         _LOGGER.debug("in request for %s : Unknown device or destination deviceID is invalid or not a member of this network.", device)
     else:
-        _LOGGER.debug("in request for %s : Unknown error.", device)
+        _LOGGER.debug("in request for %s : Unknown error (%s).", device,bug)
         
 def send_request(self, *arg): #data
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
