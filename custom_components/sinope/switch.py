@@ -75,7 +75,7 @@ class SinopeSwitch(SwitchDevice):
         self._current_power_w = None
         self._rssi = None
         self._timer = 0
-        _LOGGER.debug("Setting up %s: %s", self._name, device_type)
+        _LOGGER.debug("Setting up %s: %s", self._name, self._id)
 
     def update(self):
         """Get the latest data from Sinope and update the state."""
