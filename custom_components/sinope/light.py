@@ -88,7 +88,7 @@ class SinopeLight(Light):
         self._rssi = None
         self._timer = 0
         self._is_dimmable = int(device_type) in DEVICE_TYPE_DIMMER
-        _LOGGER.debug("Setting up %s: %s", self._name, self._type)
+        _LOGGER.debug("Setting up %s: %s", self._name, self._id)
         
     def update(self):
         """Get the latest data from Sinope and update the state."""
