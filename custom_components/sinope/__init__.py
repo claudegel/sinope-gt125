@@ -390,17 +390,17 @@ def get_result(data): # check if data write was successfull, return True or Fals
     return False
   
 def error_info(bug,device):
-    if bug == b'FF':
-        _LOGGER.debug("in request for %s : Request failed.", device)
-    elif bug == b'FE':
-        _LOGGER.debug("in request for %s : Buffer full, retry later.", device)
-    elif bug == b'FC':
-        _LOGGER.debug("in request for %s : Device not responding.", device)
-    elif bug == b'FB':
-        _LOGGER.debug("in request for %s : Abort failed, request not found in queue.", device)
-    elif bug == b'FA':
-        _LOGGER.debug("in request for %s : Unknown device or destination deviceID is invalid or not a member of this network.", device)
-    elif bug == b'FD':
+    if bug == b'FF' or bug == b'ff':
+        _LOGGER.debug("in request for %s : Request failed (%s).", device, bug)
+    elif bug == b'FE' or bug == b'fe':
+        _LOGGER.debug("in request for %s : Buffer full, retry later (%s).", device, bug)
+    elif bug == b'FC' or bug == b'fc':
+        _LOGGER.debug("in request for %s : Device not responding (%s).", device, bug)
+    elif bug == b'FB' or bug == b'fb':
+        _LOGGER.debug("in request for %s : Abort failed, request not found in queue (%s).", device, bug)
+    elif bug == b'FA' or bug == b'fa':
+        _LOGGER.debug("in request for %s : Unknown device or destination deviceID is invalid or not a member of this network (%s).", device, bug)
+    elif bug == b'FD' or bug == b'fd':
         _LOGGER.debug("in request for %s : Error message reserved (%s), info not available.", device, bug)
     else:
         _LOGGER.debug("in request for %s : Unknown error (%s).", device, bug)
