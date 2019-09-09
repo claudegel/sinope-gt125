@@ -247,9 +247,26 @@ def get_temperature(data):
         tc2 = data[46:48]
         tc4 = data[48:50]
         latemp = tc4+tc2
-        if latemp == "7ffc":
+        if latemp == "7ffc" or latemp == "7ffa":
+            _LOGGER.debug("Error code: %s (No or invalid value)", latemp)
             return 0
-        return round(float.fromhex(latemp)*0.01, 2)
+        elif latemp == "7ff8" or latemp == "7fff":
+            _LOGGER.debug("Error code: %s (Temperature higher than maximum range)", latemp)
+            return 0
+        elif latemp == "7ff9" or latemp == "8000" or latemp == "8001":
+            _LOGGER.debug("Error code: %s (Temperature lower than minimum range)", latemp)
+            return 0
+        elif latemp == "7ff6" or latemp == "7ff7" or latemp == "7ffd" or latemp == "7ffe":
+            _LOGGER.debug("Error code: %s (Defective device temperature sensor)", latemp)
+            return 0
+        elif latemp == "7ffb":
+            _LOGGER.debug("Error code: %s (Overload)", latemp)
+            return 0
+        elif latemp == "7ff5":
+            _LOGGER.debug("Error code: %s (Internal error)", latemp)
+            return 0
+        else:  
+            return round(float.fromhex(latemp)*0.01, 2)
   
 def to_celcius(temp):
     return round((temp-32)*0.5555, 2)
