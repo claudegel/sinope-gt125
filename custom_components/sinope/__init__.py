@@ -243,7 +243,7 @@ def get_temperature(data):
     status = data[20:22]
     if status == "fc":
         _LOGGER.warning("Status code: %s (device didn't answer, wrong device %s)", status, deviceID)
-	return None # device didn't answer, wrong device
+        return None # device didn't answer, wrong device
     else:  
         tc2 = data[46:48]
         tc4 = data[48:50]
