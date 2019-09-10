@@ -249,7 +249,7 @@ def get_temperature(data):
         tc4 = data[48:50]
         latemp = tc4+tc2
         if latemp == "7ffc" or latemp == "7ffa":
-            _LOGGER.warning("Error code: %s (No or invalid value for %s)", latemp, deviceID)
+            _LOGGER.warning("Error code: %s (None or invalid value for %s)", latemp, deviceID)
             return 0
         elif latemp == "7ff8" or latemp == "7fff":
             _LOGGER.warning("Error code: %s (Temperature higher than maximum range for %s)", latemp, deviceID)
