@@ -242,28 +242,29 @@ def get_temperature(data):
     deviceID = data[26:34]
     status = data[20:22]
     if status == "fc":
-        return None # device didn't answer, wrong device
+        _LOGGER.warning("Status code: %s (device didn't answer, wrong device %s)", status, deviceID)
+	return None # device didn't answer, wrong device
     else:  
         tc2 = data[46:48]
         tc4 = data[48:50]
         latemp = tc4+tc2
         if latemp == "7ffc" or latemp == "7ffa":
-            _LOGGER.debug("Error code: %s (No or invalid value)", latemp)
+            _LOGGER.warning("Error code: %s (No or invalid value for %s)", latemp, deviceID)
             return 0
         elif latemp == "7ff8" or latemp == "7fff":
-            _LOGGER.debug("Error code: %s (Temperature higher than maximum range)", latemp)
+            _LOGGER.warning("Error code: %s (Temperature higher than maximum range for %s)", latemp, deviceID)
             return 0
         elif latemp == "7ff9" or latemp == "8000" or latemp == "8001":
-            _LOGGER.debug("Error code: %s (Temperature lower than minimum range)", latemp)
+            _LOGGER.warning("Error code: %s (Temperature lower than minimum range for %s)", latemp, deviceID)
             return 0
         elif latemp == "7ff6" or latemp == "7ff7" or latemp == "7ffd" or latemp == "7ffe":
-            _LOGGER.debug("Error code: %s (Defective device temperature sensor)", latemp)
+            _LOGGER.warning("Error code: %s (Defective device temperature sensor for %s)", latemp, deviceID)
             return 0
         elif latemp == "7ffb":
-            _LOGGER.debug("Error code: %s (Overload)", latemp)
+            _LOGGER.warning("Error code: %s (Overload for %s)", latemp, deviceID)
             return 0
         elif latemp == "7ff5":
-            _LOGGER.debug("Error code: %s (Internal error)", latemp)
+            _LOGGER.warning("Error code: %s (Internal error for %s)", latemp, deviceID)
             return 0
         else:  
             return round(float.fromhex(latemp)*0.01, 2)
