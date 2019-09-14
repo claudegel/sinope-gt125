@@ -230,8 +230,13 @@ def set_sun_time(city, zone, period): # period = sunrise or sunset
 def get_heat_level(data):
     sequence = data[12:20]
     deviceID = data[26:34]
-    tc2 = data[46:48]
-    return int(float.fromhex(tc2))
+    status = data[20:22]
+    if status == "fc":
+        _LOGGER.warning("Status code: %s (wrong answer ? %s)", status, deviceID)
+        return None # device didn't answer, wrong device
+    else:  
+        tc2 = data[46:48]
+        return int(float.fromhex(tc2))
   
 def set_temperature(temp_celcius):
     temp = int(temp_celcius*100)
@@ -295,8 +300,13 @@ def put_mode(mode): #0=off,1=freeze protect,2=manual,3=auto,5=away
 def get_mode(data):
     sequence = data[12:20]
     deviceID = data[26:34]
-    tc2 = data[46:48]
-    return int(float.fromhex(tc2))
+    status = data[20:22]
+    if status != "0a":
+        _LOGGER.debug("Status code: %s (Wrong answer ? %s) %s", status, deviceID, data)
+        return None # device didn't answer, wrong device
+    else:  
+        tc2 = data[46:48]
+        return int(float.fromhex(tc2))
   
 def set_intensity(num):
     return "01"+bytearray(struct.pack('<i', num)[:1]).hex()
@@ -304,8 +314,20 @@ def set_intensity(num):
 def get_intensity(data):
     sequence = data[12:20]
     deviceID = data[26:34]
+    status = data[20:22]
+    if status != "0a":
+        _LOGGER.debug("Status code: %s (Wrong answer ? %s) %s", status, deviceID, data)
+        return None # device didn't answer, wrong answer
+    else:
+        tc2 = data[46:48]
+        return int(float.fromhex(tc2))
+
+def get_data_push(data): #will be used to send data pushed by GT125 when light is turned on or off directly to HA device
+    deviceID = data[26:34]
+    status = data[20:22]
     tc2 = data[46:48]
-    return int(float.fromhex(tc2))
+#    return int(float.fromhex(tc2))
+    return None
 
 def set_lock(lock):
     return "01"+bytearray(struct.pack('<i', lock)[:1]).hex()
@@ -410,6 +432,8 @@ def get_result(data): # check if data write was successfull, return True or Fals
 def error_info(bug,device):
     if bug == b'FF' or bug == b'ff':
         _LOGGER.debug("in request for %s : Request failed (%s).", device, bug)
+    elif bug == b'02':
+        _LOGGER.debug("in request for %s : Request aborted (%s).", device, bug)
     elif bug == b'FE' or bug == b'fe':
         _LOGGER.debug("in request for %s : Buffer full, retry later (%s).", device, bug)
     elif bug == b'FC' or bug == b'fc':
@@ -427,6 +451,7 @@ def send_request(self, *arg): #data
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_address = (self._server, PORT)
     sock.connect(server_address)
+#    sock.create_connection((server_address),10)
     try:
         sock.sendall(login_request(self))
         if bytearray(sock.recv(1024)).hex()[0:14] == "55000c00110100": #Login ok
@@ -440,18 +465,30 @@ def send_request(self, *arg): #data
                 more = binascii.hexlify(reply)[24:26] #check if we will receive other data
                 if status == b'00': # request status = ok for read and write, we go on (read=00, report=01, write=00)
                     if more == b'01': #GT125 is sending another data response
-                        datarec = sock.recv(1024) 
-                        state = binascii.hexlify(datarec)[20:22]
-                        if state == b'0a':
-                            return datarec
-                        else:
-                            error_info(state,deviceid)
+                        state = status
+                        while state != b'0a':
+                            datarec = sock.recv(1024) 
+                            state = binascii.hexlify(datarec)[20:22]
+                            if state == b'00': # request has been queued, will receive another answer later
+                                _LOGGER.debug("Request queued for device %s, waiting...", deviceID)
+                            elif state == b'0a':
+                                return datarec
+                                break
+                            elif state == b'0b':
+                                get_data_push(datarec)
+                            else:
+                                error_info(state,deviceid)
+                                break
+                    else:
+                        _LOGGER.debug("No more response...")
+                        return False
                 elif status == b'01': #status ok for data report
                     return reply
                 else:       
                     error_info(status,deviceid)
                     return False
-            return reply #unknown result send debug ?
+            else:
+                _LOGGER.debug("Bad response, crc error...")
         else:
             _LOGGER.debug("Sinope login fail, check your Api_Key and Api_ID")
     finally:
