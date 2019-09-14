@@ -300,8 +300,13 @@ def put_mode(mode): #0=off,1=freeze protect,2=manual,3=auto,5=away
 def get_mode(data):
     sequence = data[12:20]
     deviceID = data[26:34]
-    tc2 = data[46:48]
-    return int(float.fromhex(tc2))
+    status = data[20:22]
+    if status != "0a":
+        _LOGGER.debug("Status code: %s (Wrong answer ? %s) %s", status, deviceID, data)
+        return None # device didn't answer, wrong device
+    else:  
+        tc2 = data[46:48]
+        return int(float.fromhex(tc2))
   
 def set_intensity(num):
     return "01"+bytearray(struct.pack('<i', num)[:1]).hex()
