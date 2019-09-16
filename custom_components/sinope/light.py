@@ -21,16 +21,16 @@ _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'sinope'
 
-#STATE_AUTO = 'auto'
-#STATE_MANUAL = 'manual'
-#STATE_AWAY = 'away'
-#STATE_STANDBY = 'bypass'
-#SINOPE_TO_HA_STATE = {
-#    1: STATE_MANUAL,
-#    2: STATE_AUTO,
-#    3: STATE_AWAY,
-#    130: STATE_STANDBY
-#}
+STATE_AUTO = 'auto'
+STATE_MANUAL = 'manual'
+STATE_AWAY = 'away'
+STATE_STANDBY = 'bypass'
+SINOPE_TO_HA_STATE = {
+    1: STATE_MANUAL,
+    2: STATE_AUTO,
+    3: STATE_AWAY,
+    130: STATE_STANDBY
+}
 
 DEVICE_TYPE_DIMMER = [112]
 DEVICE_TYPE_LIGHT = [102]
