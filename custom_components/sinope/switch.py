@@ -21,16 +21,16 @@ _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'sinope switch'
 
-STATE_AUTO = 'auto'
-STATE_MANUAL = 'manual'
-STATE_AWAY = 'away'
-STATE_STANDBY = 'bypass'
-SINOPE_TO_HA_STATE = {
-    1: STATE_MANUAL,
-    2: STATE_AUTO,
-    3: STATE_AWAY,
-    130: STATE_STANDBY
-}
+#STATE_AUTO = 'auto'
+#STATE_MANUAL = 'manual'
+#STATE_AWAY = 'away'
+#STATE_STANDBY = 'bypass'
+#SINOPE_TO_HA_STATE = {
+#    1: STATE_MANUAL,
+#    2: STATE_AUTO,
+#    3: STATE_AWAY,
+#    130: STATE_STANDBY
+#}
 
 IMPLEMENTED_DEVICE_TYPES = [120] #power control device
 
@@ -85,14 +85,19 @@ class SinopeSwitch(SwitchDevice):
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
             self._name, elapsed, device_data)
-        self._brightness = device_data["intensity"]
-        self._operation_mode = device_data["mode"]
+        self._brightness = device_data["intensity"] if \
+                device_data["intensity"] is not None else 0.0
+        self._operation_mode = device_data["mode"] if \
+                device_data["mode"] is not None else MODE_MANUAL
         self._alarm = device_data["alarm"]
-        self._current_power_w = device_data["powerWatt"]
+        self._current_power_w = device_data["powerWatt"] if \
+                device_data["powerWatt"] is not None else 0
         self._rssi = device_data["rssi"]
         device_info = self._client.get_switch_device_info(self._id)
-        self._wattage = device_info["wattage"]
-        self._timer = device_info["timer"]
+        self._wattage = device_info["wattage"] if \
+                device_info["wattage"] is not None else 0.0
+        self._timer = device_info["timer"] if \
+                device_info["timer"] is not None else 0
         return
 #        _LOGGER.warning("Cannot update %s: %s", self._name, device_data)
 
