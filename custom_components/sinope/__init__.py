@@ -231,7 +231,7 @@ def get_heat_level(data):
     sequence = data[12:20]
     deviceID = data[26:34]
     status = data[20:22]
-    if status == "fc":
+    if status != "0a":
         _LOGGER.warning("Status code: %s (wrong answer ? %s)", status, deviceID)
         return None # device didn't answer, wrong device
     else:  
@@ -246,7 +246,7 @@ def get_temperature(data):
     sequence = data[12:20]
     deviceID = data[26:34]
     status = data[20:22]
-    if status == "fc":
+    if status != "0a":
         _LOGGER.warning("Status code: %s (device didn't answer, wrong device %s)", status, deviceID)
         return None # device didn't answer, wrong device
     else:  
@@ -291,8 +291,13 @@ def set_away(away): #0=home,2=away
 def get_away(data):
     sequence = data[12:20]
     deviceID = data[26:34]
-    tc2 = data[46:48]
-    return int(float.fromhex(tc2))  
+    status = data[20:22]
+    if status != "0a":
+        _LOGGER.warning("Status code: %s (device didn't answer, wrong device %s)", status, deviceID)
+        return None # device didn't answer, wrong device
+    else: 
+        tc2 = data[46:48]
+        return int(float.fromhex(tc2))  
 
 def put_mode(mode): #0=off,1=freeze protect,2=manual,3=auto,5=away
     return "01"+bytearray(struct.pack('<i', mode)[:1]).hex()
@@ -315,7 +320,7 @@ def get_intensity(data):
     sequence = data[12:20]
     deviceID = data[26:34]
     status = data[20:22]
-    if status != "0a":
+    if status != "0a" or data == False:
         _LOGGER.debug("Status code: %s (Wrong answer ? %s) %s", status, deviceID, data)
         return None # device didn't answer, wrong answer
     else:
@@ -335,14 +340,20 @@ def set_lock(lock):
 def get_lock(data):
     sequence = data[12:20]
     deviceID = data[26:34]
-    tc2 = data[46:48]
-    return int(float.fromhex(tc2))
+    status = data[20:22]
+    if status != "0a":
+        _LOGGER.debug("Status code: %s (Wrong answer ? %s) %s", status, deviceID, data)
+        return None # device didn't answer, wrong device
+    else:     
+        tc2 = data[46:48]
+        return int(float.fromhex(tc2))
 
 def get_power_load(data): # get power in watt use by the device
     sequence = data[12:20]
     deviceID = data[26:34]
     status = data[20:22]
-    if status == "fc":
+    if status != "0a":
+        _LOGGER.debug("Status code: %s (Wrong answer ? %s) %s", status, deviceID, data)
         return None # device didn't answer, wrong device
     else:     
         tc2 = data[46:48]
@@ -416,8 +427,13 @@ def set_timer_length(num): # 0=desabled, 1 to 255 lenght on
 def get_timer_length(data): # 0=desabled, 1 to 255 lenght on
     sequence = data[12:20]
     deviceID = data[26:34]
-    tc2 = data[46:48]
-    return int(float.fromhex(tc2))
+    status = data[20:22]
+    if status != "0a":
+        _LOGGER.debug("Status code: %s (Wrong answer ? %s) %s", status, deviceID, data)
+        return None # device didn't answer, wrong device
+    else:     
+        tc2 = data[46:48]
+        return int(float.fromhex(tc2))
 
 def get_result(data): # check if data write was successfull, return True or False
     sequence = data[12:20]
@@ -427,6 +443,8 @@ def get_result(data): # check if data write was successfull, return True or Fals
         return True
     elif str(tc2) =="01": #data report
         return True
+    else:
+        _LOGGER.debug("Status code: %s (Wrong answer ? %s) %s", tc2, deviceID, data)
     return False
   
 def error_info(bug,device):
@@ -471,13 +489,14 @@ def send_request(self, *arg): #data
                             state = binascii.hexlify(datarec)[20:22]
                             if state == b'00': # request has been queued, will receive another answer later
                                 _LOGGER.debug("Request queued for device %s, waiting...", deviceID)
-                            elif state == b'0a':
+                            elif state == b'0a': #we got an answer
                                 return datarec
                                 break
-                            elif state == b'0b':
+                            elif state == b'0b': # we receive a push notification
                                 get_data_push(datarec)
                             else:
                                 error_info(state,deviceid)
+                                return False
                                 break
                     else:
                         _LOGGER.debug("No more response...")
