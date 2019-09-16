@@ -107,7 +107,8 @@ class SinopeThermostat(ClimateDevice):
         _LOGGER.debug("Updating %s (%s sec): %s",
             self._name, elapsed, device_data)
 
-        self._cur_temp = float(device_data["temperature"])
+        self._cur_temp = float(device_data["temperature"]) if \
+            device_data["temperature"] is not None else 0.0
         self._target_temp = float(device_data["setpoint"]) if \
             device_data["setpoint"] is not None else 0.0
         self._heat_level = device_data["heatLevel"] if \
