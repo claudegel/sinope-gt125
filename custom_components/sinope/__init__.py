@@ -232,7 +232,7 @@ def get_heat_level(data):
     deviceID = data[26:34]
     status = data[20:22]
     if status != "0a":
-        _LOGGER.warning("Status code: %s (wrong answer ? %s)", status, deviceID)
+        _LOGGER.warning("Status code for device %s: (wrong answer ? %s)", deviceID, status)
         return None # device didn't answer, wrong device
     else:  
         tc2 = data[46:48]
