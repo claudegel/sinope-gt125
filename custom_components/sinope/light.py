@@ -101,7 +101,7 @@ class SinopeLight(Light):
         self._brightness_pct = device_data["intensity"] if \
             device_data["intensity"] is not None else 0.0
         self._operation_mode = device_data["mode"] if \
-            device_data["mode"] is not None else MODE_MANUAL
+            device_data["mode"] is not None else STATE_MANUAL
         self._alarm = device_data["alarm"]
         self._rssi = device_data["rssi"]
         device_info = self._client.get_light_device_info(self._id)
