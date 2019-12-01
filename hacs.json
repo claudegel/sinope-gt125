@@ -1,0 +1,12 @@
+{
+  "name": "Sinope GT125",
+  "content_in_root": false,
+  "zip_release": false,
+  "filename": false,
+  "render_readme": true,
+  "domains": ["switch", "climate", "light"],
+  "country": ["CA"],
+  "homeassistant": false,
+  "persistent_directory": "backup",
+  "iot_class": "Local Polling"
+}
