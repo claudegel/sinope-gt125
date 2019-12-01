@@ -7,6 +7,6 @@
   "domains": ["switch", "climate", "light"],
   "country": ["CA"],
   "homeassistant": false,
-  "persistent_directory": "backup",
+  "persistent_directory": false,
   "iot_class": "Local Polling"
 }
