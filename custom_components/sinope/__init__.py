@@ -697,11 +697,11 @@ class SinopeClient(object):
         try:
             if device_id == "all":
                 device_id = "FFFFFFFF"
-		result = get_result(bytearray(send_request(self, data_report_request(data_report_command,device_id,data_time,set_time(self._tz)))).hex())
+                result = get_result(bytearray(send_request(self, data_report_request(data_report_command,device_id,data_time,set_time(self._tz)))).hex())
                 response = get_result(bytearray(send_request(self, data_report_request(data_report_command,device_id,data_away,set_away(away)))).hex())
-            else: 
-		result = get_result(bytearray(send_request(self, data_report_request(data_report_command,device_id,data_time,set_time(self._tz)))).hex())
-		response = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_away,set_away(away)))).hex())
+            else:
+                result = get_result(bytearray(send_request(self, data_report_request(data_report_command,device_id,data_time,set_time(self._tz)))).hex())
+                response = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_away,set_away(away)))).hex())
         except OSError:
             raise PySinopeError("Cannot set device away")
         return response 
