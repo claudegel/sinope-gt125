@@ -261,6 +261,7 @@ class SinopeThermostat(ClimateDevice):
                 SINOPE_BYPASS_FLAG)
         elif preset_mode == PRESET_NONE:
             # Re-apply current hvac_mode without any preset
+            self._client.set_away_mode(self._id, 0)
             self.set_hvac_mode(self.hvac_mode)
         else:
             _LOGGER.error("Unable to set preset mode: %s.", preset_mode)
