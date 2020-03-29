@@ -473,7 +473,7 @@ def send_request(self, *arg): #data
     try:
         sock.sendall(login_request(self))
         if bytearray(sock.recv(1024)).hex()[0:14] == "55000c00110100": #Login ok
-            _LOGGER.debug("Sinope login = ok")
+#            _LOGGER.debug("Sinope login = ok")
             sock.sendall(arg[0])
             reply = sock.recv(1024)
             if crc_check(reply):  # receive acknoledge, check status and if we will receive more data
