@@ -46,7 +46,7 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Required(CONF_SERVER): cv.string,
         vol.Required(CONF_DK_KEY): cv.string,
         vol.Optional(CONF_MY_WEATHER, default=MY_WEATHER): cv.string,
-	vol.Optional(CONF_MY_CITY, default=MY_CITY): cv.string,
+        vol.Optional(CONF_MY_CITY, default=MY_CITY): cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL):
             cv.time_period
     })
