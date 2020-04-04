@@ -4,6 +4,8 @@ To support [HACS](https://community.home-assistant.io/t/custom-component-hacs/12
 - sinope-gt125 for devices management via direct conection to the gt125 web gateway
 - sinope-1 for devices management via [Neviweb](http://neviweb.com) portal.
 
+As a replacement for Dark Sky api, I've added support for Open Weather Map api
+
 If you already use this custom_component, make a backup of your file devices.json before first update via HACS. Devices.json will be removed. You'll need to copy your devices data to config/.storage/sinope_devices.json after first run of device.py (see below).
 # Hassbian vs Hass.io
 Those two HA platform use different location for  configuration. Now we have updated Sinope-GT125 so it can detect which platform you are using and adjust config location automatically.
@@ -82,7 +84,8 @@ sinope:
   server: '<Ip adress of your GT125>'
   id: '<ID written on the back of your GT125>' non space
   api_key: '<Api_key received on first manual connection with the GT125>' #run device.py for that
-  dk_key: '<your Dark sky key>'
+  dk_key: '<your Dark sky key>' or 'your Open weather map key'
+  my_weather: 'dark' for Dark sky api or 'owm' for Open weather map api
   my_city: '<the nearest city>' #needed to get sunrise and sunset hours for your location.
   scan_interval: 120 #you can go down to 60 if you want depending on how many devices you have to update. Default set to 180
   ```
