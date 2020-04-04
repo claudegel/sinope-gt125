@@ -293,7 +293,7 @@ def get_outside_temperature(key, latitude, longitude, my_weather):
         ledata =r.json()
         return to_celcius(float(json.dumps(ledata["currently"]["temperature"])),"C")
     else:  # https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={your api key} 
-        r = requests.get('https://api.openweathermap.org/data/2.5/weather?lat={'+latitude+'}&lon={'longitude+'}&appid={'+key+'}') 
+        r = requests.get('https://api.openweathermap.org/data/2.5/weather?lat={'+latitude+'}&lon={'+longitude+'}&appid={'+key+'}') 
         ledata =r.json()
         return to_celcius(float(json.dumps(ledata["main"]["temp"])),"K")
     
