@@ -28,12 +28,14 @@ DATA_DOMAIN = 'data_' + DOMAIN
 CONF_SERVER = 'server'
 CONF_DK_KEY = 'dk_key'
 CONF_MY_CITY = 'my_city'
+CONF_MY_WEATHER = 'my_weather'
 
 _LOGGER = logging.getLogger(__name__)
 
 #default values
 SCAN_INTERVAL = timedelta(seconds=180)
-MY_CITY = 'Montreal' 
+MY_CITY = 'Montreal'
+MY_WEATHER = 'dark' # put 'dark' if you still use Dark Sky weather data, 'owm' is for Openweathermap
 
 REQUESTS_TIMEOUT = 30
 
@@ -43,7 +45,8 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Required(CONF_ID): cv.string,
         vol.Required(CONF_SERVER): cv.string,
         vol.Required(CONF_DK_KEY): cv.string,
-	vol.Optional(CONF_MY_CITY, default=MY_CITY): cv.string,
+        vol.Optional(CONF_MY_WEATHER, default=MY_WEATHER): cv.string,
+        vol.Optional(CONF_MY_CITY, default=MY_CITY): cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL):
             cv.time_period
     })
@@ -81,11 +84,12 @@ class SinopeData:
         api_id = config.get(CONF_ID)
         server = config.get(CONF_SERVER)
         dk_key = config.get(CONF_DK_KEY)
+        my_weather = config.get(CONF_MY_WEATHER)
         my_city = config.get(CONF_MY_CITY)
         tz = config.get(CONF_TIME_ZONE)
         latitude = config.get(CONF_LATITUDE)
         longitude = config.get(CONF_LONGITUDE)
-        self.sinope_client = SinopeClient(api_key, api_id, server, my_city, tz, latitude, longitude, dk_key)
+        self.sinope_client = SinopeClient(api_key, api_id, server, my_city, tz, latitude, longitude, dk_key, my_weather)
 
     # Need some refactoring here concerning the class used to transport data
     # @Throttle(SCAN_INTERVAL)
@@ -274,16 +278,24 @@ def get_temperature(data):
         else:  
             return round(float.fromhex(latemp)*0.01, 2)
   
-def to_celcius(temp):
-    return round((temp-32)*0.5555, 2)
+def to_celcius(temp,unit): #unit = K for kelvin, C for celcius, F for farenheight
+    if unit == "C":
+        return round((temp-32)*0.5555, 2)
+    else:
+        return round((temp-273.15),2)
 
 def from_celcius(temp):
     return round((temp+1.8)+32, 2)
-  
-def get_outside_temperature(key, latitude, longitude): #https://api.darksky.net/forecast/{your dark sky key}/{latitude},{logitude}
-    r = requests.get('https://api.darksky.net/forecast/'+key+'/'+latitude+','+longitude+'?exclude=minutely,hourly,daily,alerts,flags')
-    ledata =r.json()
-    return to_celcius(float(json.dumps(ledata["currently"]["temperature"])))
+
+def get_outside_temperature(key, latitude, longitude, my_weather): 
+    if my_weather == 'dark': # https://api.darksky.net/forecast/{your dark sky key}/{latitude},{logitude}
+        r = requests.get('https://api.darksky.net/forecast/'+key+'/'+latitude+','+longitude+'?exclude=minutely,hourly,daily,alerts,flags')
+        ledata =r.json()
+        return to_celcius(float(json.dumps(ledata["currently"]["temperature"])),"C")
+    else:  # https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={your api key} 
+        r = requests.get('https://api.openweathermap.org/data/2.5/weather?lat={'+latitude+'}&lon={'+longitude+'}&appid={'+key+'}') 
+        ledata =r.json()
+        return to_celcius(float(json.dumps(ledata["main"]["temp"])),"K")
     
 def set_away(away): #0=home,2=away
     return "01"+bytearray(struct.pack('<i', away)[:1]).hex()
@@ -752,7 +764,7 @@ class SinopeClient(object):
     def set_hourly_report(self):
         """we need to send temperature once per hour if we want it to be displayed on second thermostat display line"""
         try:
-            result = get_result(bytearray(send_request(self, data_report_request(data_report_command,all_unit,data_outdoor_temperature,set_temperature(get_outside_temperature(self._dk_key, self._latitude, self._longitude))))).hex())
+            result = get_result(bytearray(send_request(self, data_report_request(data_report_command,all_unit,data_outdoor_temperature,set_temperature(get_outside_temperature(self._dk_key, self._latitude, self._longitude, self._my_weather))))).hex())
         except OSError:
             raise PySinopeError("Cannot send temperature report to each devices")
         return result
