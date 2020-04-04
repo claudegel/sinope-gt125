@@ -286,7 +286,7 @@ def to_celcius(temp,unit): #unit = K for kelvin, C for celcius, F for farenheigh
 
 def from_celcius(temp):
     return round((temp+1.8)+32, 2)
-  
+
 def get_outside_temperature(key, latitude, longitude, my_weather): 
     if my_weather == 'dark': # https://api.darksky.net/forecast/{your dark sky key}/{latitude},{logitude}
         r = requests.get('https://api.darksky.net/forecast/'+key+'/'+latitude+','+longitude+'?exclude=minutely,hourly,daily,alerts,flags')
