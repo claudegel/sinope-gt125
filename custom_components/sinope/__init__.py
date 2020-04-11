@@ -480,7 +480,9 @@ def error_info(bug,device):
 def send_request(self, *arg): #data
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_address = (self._server, PORT)
-    sock.connect(server_address)
+    while sock.connect_ex(server_address) != 0:
+        _LOGGER.debug("Connect fail: %s", sock.error)
+        sleep(10)
 #    sock.create_connection((server_address),10)
     try:
         sock.sendall(login_request(self))
