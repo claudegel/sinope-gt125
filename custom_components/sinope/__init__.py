@@ -7,6 +7,7 @@ import binascii
 import socket
 import sys
 import pytz
+import time
 from astral import Astral
 from . import crc8
 from datetime import datetime, timedelta
@@ -481,8 +482,8 @@ def send_request(self, *arg): #data
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_address = (self._server, PORT)
     while sock.connect_ex(server_address) != 0:
-        _LOGGER.debug("Connect fail: %s", sock.error)
-        sleep(10)
+        _LOGGER.debug("Connect fail...)
+        time.sleep(1)
 #    sock.create_connection((server_address),10)
     try:
         sock.sendall(login_request(self))
