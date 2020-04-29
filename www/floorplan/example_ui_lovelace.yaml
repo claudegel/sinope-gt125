@@ -1,0 +1,401 @@
+views:
+...
+  - title: floor
+    panel: true
+    path: floor
+    icon: 'mdi:floor-plan'
+    cards:
+      - config:
+          image: /local/floorplan/floorplan.svg?v=1.1.14
+          log_level: warning
+          debug: true
+          rules:
+            - action:
+                service: homeassistant.toggle
+              element: light.sinope_light_lumiere_solarium
+              entity: light.sinope_light_lumiere_solarium
+              more_info: true
+            - action:
+                service: homeassistant.toggle
+              element: light.sinope_light_lumiere_spa
+              entity: light.sinope_light_lumiere_spa
+              more_info: true
+            - action:
+                service: homeassistant.toggle
+              element: light.sinope_light_lumiere_cour
+              entity: light.sinope_light_lumiere_cour
+              more_info: true
+            - action:
+                service: homeassistant.toggle
+              element: light.sinope_dimmer_dimmer_arr_garage
+              entity: light.sinope_dimmer_dimmer_arr_garage
+              more_info: true
+            - action:
+                service: homeassistant.toggle
+              element: light.sinope_dimmer_dimmer_salle_a_diner
+              entity: light.sinope_dimmer_dimmer_salle_a_diner
+              more_info: true
+            - action:
+                service: homeassistant.toggle
+              element: light.sinope_dimmer_dimmer_salon
+              entity: light.sinope_dimmer_dimmer_salon
+              more_info: true
+            - action:
+                service: homeassistant.toggle
+              element: light.sinope_dimmer_dimmer_lum_cote
+              entity: light.sinope_dimmer_dimmer_lum_cote
+              more_info: true
+            - action:
+                service: homeassistant.toggle
+              element: light.sinope_dimmer_dimmer_lum_avant
+              entity: light.sinope_dimmer_dimmer_lum_avant
+              more_info: true
+            - action:
+                service: homeassistant.toggle
+              element: light.sinope_dimmer_dimmer_cuisine
+              entity: light.sinope_dimmer_dimmer_cuisine
+              more_info: true
+            - action:
+                service: homeassistant.toggle
+              element: light.sinope_dimmer_dimmer_ilot
+              entity: light.sinope_dimmer_dimmer_ilot
+              more_info: true
+              
+            - entities:
+                - light.sinope_light_lumiere_spa
+                - light.sinope_light_lumiere_solarium
+                - light.sinope_light_lumiere_cour
+              states:
+                - state: 'on'
+                  class: 'lights-on'
+                - state: 'off'
+                  class: 'lights-off'
+                  
+            - entities:
+                - light.sinope_dimmer_dimmer_salon
+                - light.sinope_dimmer_dimmer_lum_cote
+                - light.sinope_dimmer_dimmer_lum_avant
+                - light.sinope_dimmer_dimmer_arr_garage
+                - light.sinope_dimmer_dimmer_cuisine
+                - light.sinope_dimmer_dimmer_ilot
+                - light.sinope_dimmer_dimmer_salle_a_diner
+              states:
+                - state: 'on'
+                  class: 'dimmer-on'
+                - state: 'off'
+                  class: 'dimmer-off'
+                  
+            - class_template: |2
+                   var temp = entity.state; if (temp < 18) return "temp-very-low"; else if (temp < 20) return "temp-below-average"; else if (temp < 23) return "temp-medium"; else return "temp-very-high";
+              entities:   
+                - sensor.owm_temperature
+              name: Météo
+              text_template: >-
+                ${entity.state ? "Extérieure " + entity.state + "°" :
+                "undefined"}  
+            
+            - class_template: |2
+                   var temp = entity.state; if (temp < 18) return "temp-very-low"; else if (temp < 20) return "temp-below-average"; else if (temp < 23) return "temp-medium"; else return "temp-very-high";
+              entities:   
+                - sensor.temperature_sous_spa
+              name: spa
+              text_template: >-
+                ${entity.state ? "Sous spa " + entity.state + "°" :
+                "undefined"}  
+            
+            - entities:
+                - sensor.neviweb130_sensor_spa
+              image_template: |2-
+                 var imageDrop = "";
+                 switch (entity.state) {
+                   case "ok": imageDrop = "drop"; break;
+                   case "water": imageDrop = "leak"; break;
+                 }       
+                 return "/local/floorplan/" + imageDrop + ".svg";
+              states:
+                - state: 'water'
+                  class: 'blinking'
+                  
+            - entities:    
+                - sensor.heat_level_solarium
+                - sensor.heat_level_spa
+                - sensor.heat_level_garage
+                - sensor.heat_level_bureau
+                - sensor.heat_level_salle_a_diner
+                - sensor.heat_level_salle_lavage
+                - sensor.heat_level_salon
+                - sensor.heat_level_chambre_1
+                - sensor.heat_level_chambre_ami
+                - sensor.heat_level_chambre_enfant
+              image_template: |2-
+                 var imageName = ""; 
+                 switch (entity.state) {
+                   case "0": imageName = "heat-0"; break; 
+                   case "1": imageName = "heat-1"; break; 
+                   case "2": imageName = "heat-1"; break; 
+                   case "3": imageName = "heat-1"; break; 
+                   case "4": imageName = "heat-1"; break; 
+                   case "5": imageName = "heat-1"; break; 
+                   case "6": imageName = "heat-1"; break; 
+                   case "7": imageName = "heat-1"; break; 
+                   case "8": imageName = "heat-1"; break; 
+                   case "9": imageName = "heat-1"; break; 
+                   case "10": imageName = "heat-1"; break;
+                   case "11": imageName = "heat-1"; break; 
+                   case "12": imageName = "heat-1"; break; 
+                   case "13": imageName = "heat-1"; break; 
+                   case "14": imageName = "heat-1"; break; 
+                   case "15": imageName = "heat-1"; break; 
+                   case "16": imageName = "heat-1"; break; 
+                   case "17": imageName = "heat-1"; break; 
+                   case "18": imageName = "heat-1"; break; 
+                   case "19": imageName = "heat-1"; break; 
+                   case "20": imageName = "heat-1"; break; 
+                   case "21": imageName = "heat-2"; break; 
+                   case "22": imageName = "heat-2"; break; 
+                   case "23": imageName = "heat-2"; break; 
+                   case "24": imageName = "heat-2"; break; 
+                   case "25": imageName = "heat-2"; break; 
+                   case "26": imageName = "heat-2"; break; 
+                   case "27": imageName = "heat-2"; break; 
+                   case "28": imageName = "heat-2"; break; 
+                   case "29": imageName = "heat-2"; break; 
+                   case "30": imageName = "heat-2"; break; 
+                   case "31": imageName = "heat-2"; break; 
+                   case "32": imageName = "heat-2"; break; 
+                   case "33": imageName = "heat-2"; break; 
+                   case "34": imageName = "heat-2"; break; 
+                   case "35": imageName = "heat-2"; break; 
+                   case "36": imageName = "heat-2"; break; 
+                   case "37": imageName = "heat-2"; break; 
+                   case "38": imageName = "heat-2"; break; 
+                   case "39": imageName = "heat-2"; break; 
+                   case "40": imageName = "heat-2"; break; 
+                   case "41": imageName = "heat-3"; break; 
+                   case "42": imageName = "heat-3"; break; 
+                   case "43": imageName = "heat-3"; break; 
+                   case "44": imageName = "heat-3"; break; 
+                   case "45": imageName = "heat-3"; break; 
+                   case "46": imageName = "heat-3"; break; 
+                   case "47": imageName = "heat-3"; break; 
+                   case "48": imageName = "heat-3"; break; 
+                   case "49": imageName = "heat-3"; break; 
+                   case "50": imageName = "heat-3"; break; 
+                   case "51": imageName = "heat-3"; break; 
+                   case "52": imageName = "heat-3"; break; 
+                   case "53": imageName = "heat-3"; break; 
+                   case "54": imageName = "heat-3"; break; 
+                   case "55": imageName = "heat-3"; break; 
+                   case "56": imageName = "heat-3"; break; 
+                   case "57": imageName = "heat-3"; break; 
+                   case "58": imageName = "heat-3"; break; 
+                   case "59": imageName = "heat-3"; break; 
+                   case "60": imageName = "heat-3"; break; 
+                   case "61": imageName = "heat-4"; break; 
+                   case "62": imageName = "heat-4"; break; 
+                   case "63": imageName = "heat-4"; break; 
+                   case "64": imageName = "heat-4"; break; 
+                   case "65": imageName = "heat-4"; break; 
+                   case "66": imageName = "heat-4"; break; 
+                   case "67": imageName = "heat-4"; break; 
+                   case "68": imageName = "heat-4"; break; 
+                   case "69": imageName = "heat-4"; break; 
+                   case "70": imageName = "heat-4"; break; 
+                   case "71": imageName = "heat-4"; break; 
+                   case "72": imageName = "heat-4"; break; 
+                   case "73": imageName = "heat-4"; break; 
+                   case "74": imageName = "heat-4"; break; 
+                   case "75": imageName = "heat-4"; break; 
+                   case "76": imageName = "heat-4"; break; 
+                   case "77": imageName = "heat-4"; break; 
+                   case "78": imageName = "heat-4"; break; 
+                   case "79": imageName = "heat-4"; break; 
+                   case "80": imageName = "heat-4"; break; 
+                   case "81": imageName = "heat-5"; break; 
+                   case "82": imageName = "heat-5"; break; 
+                   case "83": imageName = "heat-5"; break; 
+                   case "84": imageName = "heat-5"; break; 
+                   case "85": imageName = "heat-5"; break; 
+                   case "86": imageName = "heat-5"; break; 
+                   case "87": imageName = "heat-5"; break; 
+                   case "88": imageName = "heat-5"; break; 
+                   case "89": imageName = "heat-5"; break; 
+                   case "90": imageName = "heat-5"; break; 
+                   case "91": imageName = "heat-5"; break; 
+                   case "92": imageName = "heat-5"; break; 
+                   case "93": imageName = "heat-5"; break; 
+                   case "94": imageName = "heat-5"; break; 
+                   case "95": imageName = "heat-5"; break;
+                   case "96": imageName = "heat-5"; break; 
+                   case "97": imageName = "heat-5"; break; 
+                   case "98": imageName = "heat-5"; break; 
+                   case "99": imageName = "heat-5"; break; 
+                   case "100": imageName = "heat-5"; break;
+                 }       
+                 return "/local/floorplan/" + imageName + ".svg";
+                 
+            - entities:    
+                - sensor.heat_level_plancher_cuisine
+                - sensor.heat_level_plancher_solarium
+                - sensor.heat_level_plancher_salle_bain
+              image_template: |2-
+                 var image2 = ""; 
+                 switch (entity.state) { 
+                   case "0": image2 = "floor-0"; break; 
+                   case "1": image2 = "floor-1"; break; 
+                   case "2": image2 = "floor-1"; break; 
+                   case "3": image2 = "floor-1"; break; 
+                   case "4": image2 = "floor-1"; break; 
+                   case "5": image2 = "floor-1"; break; 
+                   case "6": image2 = "floor-1"; break; 
+                   case "7": image2 = "floor-1"; break; 
+                   case "8": image2 = "floor-1"; break; 
+                   case "9": image2 = "floor-1"; break; 
+                   case "10": image2 = "floor-1"; break; 
+                   case "11": image2 = "floor-1"; break; 
+                   case "12": image2 = "floor-1"; break; 
+                   case "13": image2 = "floor-1"; break; 
+                   case "14": image2 = "floor-1"; break; 
+                   case "15": image2 = "floor-1"; break; 
+                   case "16": image2 = "floor-1"; break; 
+                   case "17": image2 = "floor-1"; break; 
+                   case "18": image2 = "floor-1"; break; 
+                   case "19": image2 = "floor-1"; break; 
+                   case "20": image2 = "floor-1"; break; 
+                   case "21": image2 = "floor-2"; break; 
+                   case "22": image2 = "floor-2"; break; 
+                   case "23": image2 = "floor-2"; break; 
+                   case "24": image2 = "floor-2"; break; 
+                   case "25": image2 = "floor-2"; break; 
+                   case "26": image2 = "floor-2"; break; 
+                   case "27": image2 = "floor-2"; break; 
+                   case "28": image2 = "floor-2"; break; 
+                   case "29": image2 = "floor-2"; break; 
+                   case "30": image2 = "floor-2"; break; 
+                   case "31": image2 = "floor-2"; break; 
+                   case "32": image2 = "floor-2"; break; 
+                   case "33": image2 = "floor-2"; break; 
+                   case "34": image2 = "floor-2"; break; 
+                   case "35": image2 = "floor-2"; break; 
+                   case "36": image2 = "floor-2"; break; 
+                   case "37": image2 = "floor-2"; break; 
+                   case "38": image2 = "floor-2"; break; 
+                   case "39": image2 = "floor-2"; break; 
+                   case "40": image2 = "floor-2"; break; 
+                   case "41": image2 = "floor-3"; break; 
+                   case "42": image2 = "floor-3"; break; 
+                   case "43": image2 = "floor-3"; break; 
+                   case "44": image2 = "floor-3"; break; 
+                   case "45": image2 = "floor-3"; break; 
+                   case "46": image2 = "floor-3"; break; 
+                   case "47": image2 = "floor-3"; break; 
+                   case "48": image2 = "floor-3"; break; 
+                   case "49": image2 = "floor-3"; break; 
+                   case "50": image2 = "floor-3"; break; 
+                   case "51": image2 = "floor-3"; break; 
+                   case "52": image2 = "floor-3"; break; 
+                   case "53": image2 = "floor-3"; break; 
+                   case "54": image2 = "floor-3"; break; 
+                   case "55": image2 = "floor-3"; break; 
+                   case "56": image2 = "floor-3"; break; 
+                   case "57": image2 = "floor-3"; break; 
+                   case "58": image2 = "floor-3"; break; 
+                   case "59": image2 = "floor-3"; break; 
+                   case "60": image2 = "floor-3"; break; 
+                   case "61": image2 = "floor-4"; break; 
+                   case "62": image2 = "floor-4"; break; 
+                   case "63": image2 = "floor-4"; break; 
+                   case "64": image2 = "floor-4"; break; 
+                   case "65": image2 = "floor-4"; break; 
+                   case "66": image2 = "floor-4"; break; 
+                   case "67": image2 = "floor-4"; break; 
+                   case "68": image2 = "floor-4"; break; 
+                   case "69": image2 = "floor-4"; break; 
+                   case "70": image2 = "floor-4"; break; 
+                   case "71": image2 = "floor-4"; break; 
+                   case "72": image2 = "floor-4"; break; 
+                   case "73": image2 = "floor-4"; break; 
+                   case "74": image2 = "floor-4"; break; 
+                   case "75": image2 = "floor-4"; break; 
+                   case "76": image2 = "floor-4"; break; 
+                   case "77": image2 = "floor-4"; break; 
+                   case "78": image2 = "floor-4"; break; 
+                   case "79": image2 = "floor-4"; break; 
+                   case "80": image2 = "floor-4"; break; 
+                   case "81": image2 = "floor-5"; break; 
+                   case "82": image2 = "floor-5"; break; 
+                   case "83": image2 = "floor-5"; break; 
+                   case "84": image2 = "floor-5"; break; 
+                   case "85": image2 = "floor-5"; break; 
+                   case "86": image2 = "floor-5"; break; 
+                   case "87": image2 = "floor-5"; break; 
+                   case "88": image2 = "floor-5"; break; 
+                   case "89": image2 = "floor-5"; break; 
+                   case "90": image2 = "floor-5"; break; 
+                   case "91": image2 = "floor-5"; break; 
+                   case "92": image2 = "floor-5"; break; 
+                   case "93": image2 = "floor-5"; break; 
+                   case "94": image2 = "floor-5"; break; 
+                   case "95": image2 = "floor-5"; break;
+                   case "96": image2 = "floor-5"; break; 
+                   case "97": image2 = "floor-5"; break; 
+                   case "98": image2 = "floor-5"; break; 
+                   case "99": image2 = "floor-5"; break; 
+                   case "100": image2 = "floor-5"; break;
+                 }
+                 return "/local/floorplan/" + image2 + ".svg";
+                 
+            - class_template: |2
+                   var temp = entity.attributes.current_temperature; if (temp < 18) return "temp-very-low"; else if (temp < 20) return "temp-below-average"; else if (temp < 23) return "temp-medium"; else return "temp-very-high";
+              entities:
+                - climate.sinope_climate_bureau
+                - climate.sinope_climate_chambre_1
+                - climate.sinope_climate_chambre_ami
+                - climate.sinope_climate_chambre_enfant
+                - climate.sinope_climate_garage
+                - climate.sinope_climate_salle_a_diner
+                - climate.sinope_climate_salle_lavage
+                - climate.sinope_climate_salon
+                - climate.sinope_climate_solarium
+                - climate.sinope_climate_spa
+              name: climate
+              text_template: >-
+                ${entity.state ? entity.attributes.current_temperature + "°" :
+                "undefined"}
+                
+            - class_template: |2
+                   var temp = entity.attributes.current_temperature; if (temp < 10) return "temp-very-low"; else if (temp < 20) return "temp-below-average"; else if (temp < 24) return "temp-medium"; else return "temp-very-high";
+              entities:
+                - climate.neviweb130_climate_plancher_cuisin
+                - climate.neviweb130_climate_plancher_solari
+                - climate.neviweb130_climate_salle_de_bain
+              name: floor
+              text_template: >-
+                ${entity.state ? "Plancher " + entity.attributes.current_temperature + "°" :
+                "undefined"}
+                
+            - class_template: |2
+                   var temp = entity.attributes.current_temperature; if (temp < 18) return "temp-very-low"; else if (temp < 20) return "temp-below-average"; else if (temp < 23) return "temp-medium"; else return "temp-very-high";
+              entities:
+                - climate.salon
+                - climate.chambres
+              name: cool
+              text_template: >-
+                ${entity.state ? entity.attributes.current_temperature + "°" :
+                "undefined"}
+                
+            - class_template: |2
+                   var humid = entity.state; if (humid < 30) return "humid-very-dry"; else if (humid < 35) return "humid-below-average"; else if (humid < 45) return "humid-medium"; else return "humid-very-high";
+              entities:
+                - sensor.salon_humidite
+                - sensor.chambres_humidite
+              name: humid
+              text_template: >-
+                ${entity.state ? "H: " + entity.state + "%" :
+                "undefined"}
+                
+          stylesheet: /local/floorplan/floorplan.css?v=1.1.14
+        title: Rez-de-chaussé
+        type: 'custom:floorplan-card'
+    id: system
+    title: floorplan
