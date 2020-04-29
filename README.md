@@ -406,6 +406,7 @@ sensor:
                 ${entity.state ? "Sous spa " + entity.state + "°" :
                 "undefined"}
 ```
+- Finally create a floorplan.css file to setup your class to have everything working as you which. See example floorplan.css
 
 ## Current Limitations
 - Home Assistant doesn't support operation mode selection for light and switch entities. So you won't see any dropdown list in the UI where you can switch between Auto and Manual mode. You can only see the current mode in the attributes. TODO: register a new service to change operation_mode and another one to set away mode.
