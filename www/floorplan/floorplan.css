@@ -1,0 +1,141 @@
+ 
+#floorplan  {
+  padding: 1px;
+}
+
+svg tspan {
+  fill: var(--primary-text-color);
+}
+
+/* Animation */
+
+.spinning {
+  animation-name: spin;
+  animation-duration: 5s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  transform-origin: 50% 50%;
+  transform-box: fill-box;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* SVG shapes */
+
+svg, svg * {
+  vector-effect: non-scaling-stroke !important;
+  pointer-events: all !important;
+}
+
+/* Hover over */
+
+.ha-entity:hover {
+  stroke: #03A9F4 !important;
+  stroke-width: 1px !important;
+  stroke-opacity: 1 !important;
+}
+
+/* Binary sensors */
+
+.binary-sensor-on {
+  fill: #F9D27C !important;
+}
+
+.binary-sensor-off {
+  fill: #7CB1F9 !important;
+  transition: fill 5s ease;
+}
+
+/* lights */
+
+.lights-on {
+  stroke: #000000 !important;
+  fill: #f8cc6d !important;
+}
+
+.lights-off {
+  stroke: #000000 !important;
+/*  fill: #e6e6e6 !important;*/
+  fill: #000000 !important;
+  transition: fill 2s ease;
+}
+
+/* lights */
+
+.dimmer-on {
+  stroke: #000000 !important;
+  fill: #f8cc6d !important;
+}
+
+.dimmer-off {
+  stroke: #000000 !important;
+  fill: #000000 !important;
+  transition: fill 5s ease;
+}
+
+/* Buttons */
+
+.background-on {
+  fill: #1ABA92 !important;
+}
+
+.background-off {
+  fill: #d32f2f !important;
+}
+
+.background-on tspan {
+  fill: white !important;
+}
+
+/* heat_state */
+
+.temp-very-low {
+  fill: #ffc61a !important;
+}
+
+.temp-below-average {
+  fill: #e68a00 !important;
+}
+
+.temp-medium {
+  fill: #e67300 !important;
+}
+
+.temp-very-high {
+  fill: #e62e00 !important;
+}
+
+/* humidity state */
+
+.humid-very-dry {
+  fill: #ffc61a !important;
+}
+
+.humid-below-average {
+  fill: #e68a00 !important;
+}
+
+.humid-medium {
+  fill: #e67300 !important;
+}
+
+.humid-very-high {
+  fill: #e62e00 !important;
+}
+
+/* floud alarme */
+
+.blinking {
+  animation: blink 2s linear infinite;
+}
+
+@keyframes blink {  
+  50% { opacity: 0; }
+}
