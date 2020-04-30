@@ -159,7 +159,7 @@ sensor:
                  return "/local/floorplan/" + imageName + ".svg";
 ```
 
-- To get light control add a light icon «light.svg» in your floorplan and link the ID to the light entity. To ba able to directly toggle the light on/off add this in your ui_lovelace.yaml for each light and dimmer:
+- To get light control add a square element in your floorplan and link the ID to the light entity. One square for each light and dimmer. To be able to directly toggle the light on/off add this in your ui_lovelace.yaml for each light and dimmer:
 
 ```
         rules:
@@ -176,20 +176,26 @@ sensor:
               
             - entities:
                 - light.sinope_light_lumiere_solarium
-              states:
-                - state: 'on'
-                  class: 'lights-on'
-                - state: 'off'
-                  class: 'lights-off'
+              image_template: |2-
+                 var imageLight = "";
+                 switch (entity.state) {
+                   case "on": imageLight = "light-on"; break;
+                   case "off": imageLight = "light-off"; break;
+                 }       
+                 return "/local/floorplan/" + imageLight + ".svg";
                   
             - entities:
                 - light.sinope_dimmer_dimmer_arr_garage
-              states:
-                - state: 'on'
-                  class: 'dimmer-on'
-                - state: 'off'
-                  class: 'dimmer-off'             
+              image_template: |2-
+                 var imageLight = "";
+                 switch (entity.state) {
+                   case "on": imageLight = "light-on"; break;
+                   case "off": imageLight = "light-off"; break;
+                 }       
+                 return "/local/floorplan/" + imageLight + ".svg";         
 ```
+You can merge both light and dimmer in the same entities group.
+
 - to get water leak alarm from water leak sensor connected to your GT130 add your water icon to your floorplan and link it to the leak sensor entity. Icon will blink if water is detected.
 ```
             - entities:
