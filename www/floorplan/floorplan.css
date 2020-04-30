@@ -53,33 +53,6 @@ svg, svg * {
   transition: fill 5s ease;
 }
 
-/* lights */
-
-.lights-on {
-  stroke: #000000 !important;
-  fill: #f8cc6d !important;
-}
-
-.lights-off {
-  stroke: #000000 !important;
-/*  fill: #e6e6e6 !important;*/
-  fill: #000000 !important;
-  transition: fill 2s ease;
-}
-
-/* lights */
-
-.dimmer-on {
-  stroke: #000000 !important;
-  fill: #f8cc6d !important;
-}
-
-.dimmer-off {
-  stroke: #000000 !important;
-  fill: #000000 !important;
-  transition: fill 5s ease;
-}
-
 /* Buttons */
 
 .background-on {
