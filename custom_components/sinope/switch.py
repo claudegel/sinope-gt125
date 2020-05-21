@@ -12,7 +12,7 @@ import time
 
 import custom_components.sinope as sinope
 from . import (SCAN_INTERVAL, CONFDIR)
-from homeassistant.components.switch import (SwitchDevice, 
+from homeassistant.components.switch import (SwitchEntity, 
     ATTR_TODAY_ENERGY_KWH, ATTR_CURRENT_POWER_W)
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
@@ -59,7 +59,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
     add_devices(devices, True)
 
-class SinopeSwitch(SwitchDevice):
+class SinopeSwitch(SwitchEntity):
     """Implementation of a Sinope switch."""
 
     def __init__(self, data, device_id, name, device_type):

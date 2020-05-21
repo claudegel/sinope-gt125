@@ -14,7 +14,7 @@ import time
 
 import custom_components.sinope as sinope
 from . import (SCAN_INTERVAL, CONFDIR)
-from homeassistant.components.climate import (ClimateDevice)
+from homeassistant.components.climate import (ClimateEntity)
 from homeassistant.components.climate.const import (HVAC_MODE_HEAT, 
     HVAC_MODE_OFF, HVAC_MODE_AUTO, SUPPORT_TARGET_TEMPERATURE, 
     SUPPORT_PRESET_MODE, PRESET_AWAY, PRESET_NONE, CURRENT_HVAC_HEAT, 
@@ -77,7 +77,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     
     add_devices(devices, True)
 
-class SinopeThermostat(ClimateDevice):
+class SinopeThermostat(ClimateEntity):
     """Implementation of a Sinope thermostat."""
 
     def __init__(self, data, device_id, name, device_type):
