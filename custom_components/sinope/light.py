@@ -13,7 +13,7 @@ import time
 
 import custom_components.sinope as sinope
 from . import (SCAN_INTERVAL, CONFDIR)
-from homeassistant.components.light import (Light, ATTR_BRIGHTNESS,
+from homeassistant.components.light import (LightEntity, ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT, SUPPORT_BRIGHTNESS)
 from datetime import timedelta
 
@@ -72,7 +72,7 @@ def brightness_from_percentage(percent):
     """Convert percentage to absolute value 0..255."""
     return int((percent * 255.0) / 100.0)
 
-class SinopeLight(Light):
+class SinopeLight(LightEntity):
     """Implementation of a Sinope light."""
 
     def __init__(self, data, device_id, name, wattage, device_type):
