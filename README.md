@@ -185,6 +185,10 @@ climate.sinope_climate_thermostat_name:
 ```yaml
 customize: !include customize.yaml
 ``` 
+## Floorplan
+
+Under www/floorplan you will find what can be done to add Sinopé devices in your floorplan with the icons you need in svg format.
+My floorplan was created with inkscape and I use the same icon used for thermostat customisation.
 
 ## Current Limitations
 - Home Assistant doesn't support operation mode selection for light and switch entities. So you won't see any dropdown list in the UI where you can switch between Auto and Manual mode. You can only see the current mode in the attributes. TODO: register a new service to change operation_mode and another one to set away mode.
