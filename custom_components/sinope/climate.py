@@ -1,8 +1,8 @@
 """
 Support for Sinope thermostat.
-type 10 = thermostat TH1120RF 3000W and 4000W
-type 20 = thermostat TH1300RF 3600W floor, TH1500RF double pole thermostat
-type 21 = thermostat TH1400RF low voltage
+family 10 = thermostat TH1120RF 3000W and 4000W
+family 20 = thermostat TH1300RF 3600W floor, TH1500RF double pole thermostat
+family 21 = thermostat TH1400RF low voltage
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
