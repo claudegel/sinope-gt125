@@ -1,7 +1,7 @@
 """
 Support for Sinope light switch/dimmer.
-type 102 = light switch SW2500RF
-type 112 = light dimmer DM2500RF
+family 102 = light switch SW2500RF
+family 112 = light dimmer DM2500RF
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
