@@ -1,6 +1,6 @@
 """
 Support for Sinope switch.
-type 120 = load controller device, RM3250RF and RM3200RF
+family 120 = load controller device, RM3250RF and RM3200RF
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
