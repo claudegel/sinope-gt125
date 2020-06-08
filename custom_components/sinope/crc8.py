@@ -21,17 +21,20 @@
 # SOFTWARE.
 # 
 """The crc8 module.
+
 The crc8 module provides the same interface as the hashlib module.
     https://docs.python.org/2/library/hashlib.html
+
 Some code was copied from here:
     https://dzone.com/articles/crc8py
 and gave credit "From the PyPy project" and the link
     http://snippets.dzone.com/posts/show/3543
+
 """
 import sys
 
 __author__="Nicco Kunzmann"
-__version__="0.0.5"
+__version__="0.1.0"
 
 PY2 = sys.version_info[0] == 2
 
@@ -74,13 +77,14 @@ class crc8(object):
                 0xde, 0xd9, 0xd0, 0xd7, 0xc2, 0xc5, 0xcc, 0xcb,
                 0xe6, 0xe1, 0xe8, 0xef, 0xfa, 0xfd, 0xf4, 0xf3]
 
-    def __init__(self, initial_string=b''):
+    def __init__(self, initial_string=b'', initial_start=0x00):
         """Create a new crc8 hash instance."""
-        self._sum = 0x00
+        self._sum = initial_start
         self._update(initial_string)
 
     def update(self, bytes_):
         """Update the hash object with the string arg.
+
         Repeated calls are equivalent to a single call with the concatenation
         of all the arguments: m.update(a); m.update(b) is equivalent
         to m.update(a+b).
@@ -89,6 +93,7 @@ class crc8(object):
 
     def digest(self):
         """Return the digest of the bytes passed to the update() method so far.
+
         This is a string of digest_size bytes which may contain non-ASCII
         characters, including null bytes.
         """
@@ -96,6 +101,7 @@ class crc8(object):
 
     def hexdigest(self):
         """Return digest() as hexadecimal string.
+
         Like digest() except the digest is returned as a string of double
         length, containing only hexadecimal digits. This may be used to
         exchange the value safely in email or other non-binary environments.
