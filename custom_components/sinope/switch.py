@@ -88,7 +88,7 @@ class SinopeSwitch(SwitchEntity):
         self._brightness = device_data["intensity"] if \
                 device_data["intensity"] is not None else 0.0
         self._operation_mode = device_data["mode"] if \
-                device_data["mode"] is not None else STATE_MANUAL
+                device_data["mode"] is not None else 1 #STATE_MANUAL
         self._alarm = device_data["alarm"]
         self._current_power_w = device_data["powerWatt"] if \
                 device_data["powerWatt"] is not None else 0
