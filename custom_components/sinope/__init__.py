@@ -252,14 +252,14 @@ def get_temperature(data):
     deviceID = data[26:34]
     status = data[20:22]
     if status != "0a":
-        _LOGGER.warning("Status code: %s (device didn't answer, wrong device %s)", status, deviceID)
+        _LOGGER.warning("Status code: %s (device didn't answer, wrong device %s), (data: %s)", status, deviceID, data)
         return None # device didn't answer, wrong device
     else:  
         tc2 = data[46:48]
         tc4 = data[48:50]
         latemp = tc4+tc2
         if latemp == "7ffc" or latemp == "7ffa":
-            _LOGGER.warning("Error code: %s (None or invalid value for %s)", latemp, deviceID)
+            _LOGGER.warning("Error code: %s (None or invalid value for %s), (data: %s)", latemp, deviceID, data)
             return 0
         elif latemp == "7ff8" or latemp == "7fff":
             _LOGGER.warning("Error code: %s (Temperature higher than maximum range for %s)", latemp, deviceID)
@@ -268,13 +268,13 @@ def get_temperature(data):
             _LOGGER.warning("Error code: %s (Temperature lower than minimum range for %s)", latemp, deviceID)
             return 0
         elif latemp == "7ff6" or latemp == "7ff7" or latemp == "7ffd" or latemp == "7ffe":
-            _LOGGER.warning("Error code: %s (Defective device temperature sensor for %s)", latemp, deviceID)
+            _LOGGER.warning("Error code: %s (Defective device temperature sensor for %s), (data: %s)", latemp, deviceID, data)
             return 0
         elif latemp == "7ffb":
             _LOGGER.warning("Error code: %s (Overload for %s)", latemp, deviceID)
             return 0
         elif latemp == "7ff5":
-            _LOGGER.warning("Error code: %s (Internal error for %s)", latemp, deviceID)
+            _LOGGER.warning("Error code: %s (Internal error for %s), (data: %s)", latemp, deviceID, data)
             return 0
         else:  
             return round(float.fromhex(latemp)*0.01, 2)
@@ -482,7 +482,7 @@ def send_request(self, *arg): #data
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_address = (self._server, PORT)
     while sock.connect_ex(server_address) != 0:
-        _LOGGER.debug("Connect fail...")
+        _LOGGER.debug("Connect fail... waiting for socket connection...")
         time.sleep(1)
 #    sock.create_connection((server_address),10)
     try:
@@ -510,6 +510,7 @@ def send_request(self, *arg): #data
                             elif state == b'0b': # we receive a push notification
                                 get_data_push(datarec)
                             else:
+                                _LOGGER.debug("Bad answer received, data: %s", binascii.hexlify(datarec))
                                 error_info(state,deviceid)
                                 return False
                                 break
