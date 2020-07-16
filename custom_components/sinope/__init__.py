@@ -468,7 +468,7 @@ def error_info(bug,device):
     elif bug == b'FE' or bug == b'fe':
         _LOGGER.debug("in request for %s : Buffer full, retry later (%s).", device, bug)
     elif bug == b'FC' or bug == b'fc':
-        _LOGGER.debug("in request for %s : Device not responding (%s).", device, bug)
+        _LOGGER.debug("in request for %s : Device not responding (%s), no more answer, request aborted.", device, bug)
     elif bug == b'FB' or bug == b'fb':
         _LOGGER.debug("in request for %s : Abort failed, request not found in queue (%s).", device, bug)
     elif bug == b'FA' or bug == b'fa':
