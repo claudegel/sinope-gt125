@@ -22,13 +22,17 @@ from homeassistant.components.climate.const import (HVAC_MODE_HEAT,
 from homeassistant.const import (TEMP_CELSIUS, TEMP_FAHRENHEIT, ATTR_TEMPERATURE)
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
-
+from .const import (
+    ATTR_OUTSIDE_TEMPERATURE,
+    SUPPORT_OUTSIDE_TEMPERATURE,
+    SERVICE_SET_OUTSIDE_TEMPERATURE,
+)
 _LOGGER = logging.getLogger(__name__)
 
 SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE | SUPPORT_OUTSIDE_TEMPERATURE)
 
 SERVICE_SET_OUTSIDE_TEMPERATURE = "set_outside_temperature"
-ATTR_OUTSIDE_TEMPERATURE = "outside_temperature"
+
 
 DEFAULT_NAME = "sinope climate"
 
