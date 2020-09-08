@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 
 import voluptuous as vol
 
-import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers import config_validation as cv, entity_platform, service
 from homeassistant.helpers import discovery
 from homeassistant.const import (CONF_API_KEY, CONF_ID,
     CONF_SCAN_INTERVAL, CONF_TIME_ZONE, CONF_LONGITUDE, CONF_LATITUDE)
