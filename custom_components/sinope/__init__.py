@@ -66,6 +66,9 @@ def setup(hass, hass_config):
  
     _LOGGER.debug("Setting config location to: %s", CONFDIR)
 
+    global SUPPORT_OUTSIDE_TEMPERATURE
+    SUPPORT_OUTSIDE_TEMPERATURE = 128
+
     global SCAN_INTERVAL 
     SCAN_INTERVAL = hass_config[DOMAIN].get(CONF_SCAN_INTERVAL)
     _LOGGER.debug("Setting scan interval to: %s", SCAN_INTERVAL)
