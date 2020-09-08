@@ -13,7 +13,7 @@ import voluptuous as vol
 import time
 
 import custom_components.sinope as sinope
-from . import (SCAN_INTERVAL, CONFDIR, SUPPORT_OUTSIDE_TEMPERATURE)
+from . import (SCAN_INTERVAL, CONFDIR)
 from homeassistant.components.climate import (ClimateEntity)
 from homeassistant.components.climate.const import (HVAC_MODE_HEAT, 
     HVAC_MODE_OFF, HVAC_MODE_AUTO, SUPPORT_TARGET_TEMPERATURE, 
@@ -27,6 +27,7 @@ from .const import (
     SUPPORT_OUTSIDE_TEMPERATURE,
     SERVICE_SET_OUTSIDE_TEMPERATURE,
 )
+
 _LOGGER = logging.getLogger(__name__)
 
 SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE | SUPPORT_OUTSIDE_TEMPERATURE)
