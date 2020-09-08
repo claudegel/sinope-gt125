@@ -82,7 +82,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
 def setup_entry(hass, config, add_entities):
     """Set up the set_outside_temperature service."""
-
+    platform = entity_platform.current_platform.get()
     # This will call Entity.set_outside_temperature(outside_temperature=VALUE)
     platform.register_entity_service(
         SERVICE_SET_OUTSIDE_TEMPERATURE,
