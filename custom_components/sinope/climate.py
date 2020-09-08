@@ -13,7 +13,7 @@ import voluptuous as vol
 import time
 
 import custom_components.sinope as sinope
-from . import (SCAN_INTERVAL, CONFDIR)
+from . import (SCAN_INTERVAL, CONFDIR, SUPPORT_OUTSIDE_TEMPERATURE)
 from homeassistant.components.climate import (ClimateEntity)
 from homeassistant.components.climate.const import (HVAC_MODE_HEAT, 
     HVAC_MODE_OFF, HVAC_MODE_AUTO, SUPPORT_TARGET_TEMPERATURE, 
@@ -25,7 +25,10 @@ from homeassistant.helpers.event import track_time_interval
 
 _LOGGER = logging.getLogger(__name__)
 
-SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE)
+SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE | SUPPORT_OUTSIDE_TEMPERATURE)
+
+SERVICE_SET_OUTSIDE_TEMPERATURE = "set_outside_temperature"
+ATTR_OUTSIDE_TEMPERATURE = "outside_temperature"
 
 DEFAULT_NAME = "sinope climate"
 
@@ -76,6 +79,20 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
         i = i + 1
     
     add_devices(devices, True)
+
+def setup_entry(hass, config, add_entities):
+    """Set up the set_outside_temperature service."""
+
+    # This will call Entity.set_outside_temperature(outside_temperature=VALUE)
+    platform.register_entity_service(
+        SERVICE_SET_OUTSIDE_TEMPERATURE,
+        {
+            vol.Required(ATTR_OUTSIDE_TEMPERATURE): vol.All(
+                vol.Coerce(float), vol.Range(min=-40, max=40)
+            )
+        },
+        "set_outside_temperaturer",
+    )
 
 class SinopeThermostat(ClimateEntity):
     """Implementation of a Sinope thermostat."""
@@ -202,6 +219,11 @@ class SinopeThermostat(ClimateEntity):
         return self._target_temp
 
     @property
+    def outside_temperature (self):
+        """Return the outside temperature we try to set."""
+        return self._outside_temperature
+    
+    @property
     def preset_modes(self):
         """Return available preset modes."""
         return PRESET_MODES
@@ -233,6 +255,19 @@ class SinopeThermostat(ClimateEntity):
             return
         self._client.set_temperature(self._id, temperature)
         self._target_temp = temperature
+
+    def set_outside_temperature(self, outside_temperature):
+        """Send command to set new outside temperature."""
+        if outside_temperature is None:
+            return
+        self._client.set_hourly_report(self._id, outside_temperature)
+        self._outside_temperature = outside_temperature
+
+    async def async_set_outside_temperature(self, outside_temperature):
+        """Send command to set new outside temperature."""
+        await self._client.set_hourly_report(
+            self._id, outside_temperature)
+        self._outside_temperature = outside_temperature
 
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
