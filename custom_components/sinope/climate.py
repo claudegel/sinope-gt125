@@ -91,7 +91,7 @@ def setup_entry(hass, config, add_entities):
                 vol.Coerce(float), vol.Range(min=-40, max=40)
             )
         },
-        "set_outside_temperaturer",
+        "set_outside_temperature",
     )
 
 class SinopeThermostat(ClimateEntity):
