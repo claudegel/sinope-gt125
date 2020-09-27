@@ -330,15 +330,18 @@ def set_intensity(num):
     return "01"+bytearray(struct.pack('<i', num)[:1]).hex()
 
 def get_intensity(data):
-    sequence = data[12:20]
-    deviceID = data[26:34]
-    status = data[20:22]
-    if status != "0a" or data == False:
-        _LOGGER.debug("Status code: %s (Wrong answer for: %s) Data:(%s)", status, deviceID, data)
-        return None # device didn't answer, wrong answer
+    if data is not None:
+        sequence = data[12:20]
+        deviceID = data[26:34]
+        status = data[20:22]
+        if status != "0a" or data == False:
+            _LOGGER.debug("Status code: %s (Wrong answer for: %s) Data:(%s)", status, deviceID, data)
+            return None # device didn't answer, wrong answer
+        else:
+            tc2 = data[46:48]
+            return int(float.fromhex(tc2))
     else:
-        tc2 = data[46:48]
-        return int(float.fromhex(tc2))
+        _LOGGER.debug("No intensity received.")
 
 def get_data_push(data): #will be used to send data pushed by GT125 when light is turned on or off directly to HA device
     deviceID = data[26:34]
@@ -770,5 +773,5 @@ class SinopeClient(object):
         try:
             result = get_result(bytearray(send_request(self, data_report_request(data_report_command,all_unit,data_outdoor_temperature,set_temperature(get_outside_temperature(self._dk_key, self._latitude, self._longitude, self._my_weather))))).hex())
         except OSError:
-            raise PySinopeError("Cannot send temperature report to each devices")
+            raise PySinopeError("Cannot send outside temperature report to each devices")
         return result
