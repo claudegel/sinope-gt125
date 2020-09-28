@@ -14,10 +14,16 @@ from datetime import datetime, timedelta
 
 import voluptuous as vol
 
-from homeassistant.helpers import config_validation as cv, entity_platform, service
-from homeassistant.helpers import discovery
-from homeassistant.const import (CONF_API_KEY, CONF_ID,
-    CONF_SCAN_INTERVAL, CONF_TIME_ZONE, CONF_LONGITUDE, CONF_LATITUDE)
+from homeassistant.helpers import config_validation as cv, discovery, entity_platform, service
+#from homeassistant.helpers import discovery
+from homeassistant.const import (
+    CONF_API_KEY,
+    CONF_ID,
+    CONF_SCAN_INTERVAL,
+    CONF_TIME_ZONE,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
+)
 from homeassistant.util import Throttle
 
 #REQUIREMENTS = ['PY_Sinope==0.1.7']
@@ -27,9 +33,9 @@ VERSION = '1.1.0'
 DOMAIN = 'sinope'
 DATA_DOMAIN = 'data_' + DOMAIN
 CONF_SERVER = 'server'
-CONF_DK_KEY = 'dk_key'
 CONF_MY_CITY = 'my_city'
 CONF_MY_WEATHER = 'my_weather'
+CONF_DK_KEY= 'dk_key'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -54,7 +60,7 @@ CONFIG_SCHEMA = vol.Schema({
 }, extra=vol.ALLOW_EXTRA)
 
 def setup(hass, hass_config):
-    """Set up sinope."""
+    """Setup sinope."""
     data = SinopeData(hass_config[DOMAIN])
     hass.data[DATA_DOMAIN] = data
 
@@ -88,9 +94,7 @@ class SinopeData:
         my_weather = config.get(CONF_MY_WEATHER)
         my_city = config.get(CONF_MY_CITY)
         tz = config.get(CONF_TIME_ZONE)
-        latitude = config.get(CONF_LATITUDE)
-        longitude = config.get(CONF_LONGITUDE)
-        self.sinope_client = SinopeClient(api_key, api_id, server, my_city, tz, latitude, longitude, dk_key, my_weather)
+        self.sinope_client = SinopeClient(api_key, api_id, server, my_city, tz, dk_key, my_weather)
 
     # Need some refactoring here concerning the class used to transport data
     # @Throttle(SCAN_INTERVAL)
@@ -767,8 +771,10 @@ class SinopeClient(object):
       
     def set_hourly_report(self):
         """we need to send temperature once per hour if we want it to be displayed on second thermostat display line"""
+        """We also need to send command to switch from setpoint temperature to outside temperature on second thermostat display"""
         try:
-            result = get_result(bytearray(send_request(self, data_report_request(data_report_command,all_unit,data_outdoor_temperature,set_temperature(get_outside_temperature(self._dk_key, self._latitude, self._longitude, self._my_weather))))).hex())
+            reply = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_display2,put_mode(1)))).hex())
+            result = get_result(bytearray(send_request(self, data_report_request(data_report_command,device_id,data_outdoor_temperature,set_temperature(outside_temperature)))).hex())
         except OSError:
-            raise PySinopeError("Cannot send temperature report to each devices")
+            raise PySinopeError("Cannot send outside temperature report to each devices")
         return result
