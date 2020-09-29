@@ -85,22 +85,8 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     
     add_devices(devices, True)
 
-#def setup_entry(hass, config, add_entities):
-#    """Set up the set_outside_temperature service."""
-#    platform = entity_platform.current_platform.get()
-#    # This will call Entity.set_outside_temperature(outside_temperature=VALUE)
-#    platform.register_entity_service(
-#        SERVICE_SET_OUTSIDE_TEMPERATURE,
-#        {
-#            vol.Required(ATTR_OUTSIDE_TEMPERATURE): vol.All(
-#                vol.Coerce(float), vol.Range(min=-40, max=40)
-#            )
-#        },
-#        "set_outside_temperature",
-#    )
-
 async def async_setup_entry(hass, entry):
-    """Set up set_outside_temperature fr sinope climate"""
+    """Setup set_outside_temperature service for sinope climate"""
     
     platform = entity_platform.current_platform.get()
     
@@ -276,7 +262,7 @@ class SinopeThermostat(ClimateEntity):
 
     async def async_set_outside_temperature(self, outside_temperature):
         """Send command to set new outside temperature."""
-        await self._client.set_hourly_report(
+        self._client.set_hourly_report(
             self._id, outside_temperature)
         self._outside_temperature = outside_temperature
 
