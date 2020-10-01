@@ -10,7 +10,9 @@
             "https://github.com/claudegel/sinope-gt125/tree/master/custom_components/climate.py",
             "https://github.com/claudegel/sinope-gt125/tree/master/custom_components/switch.py",
             "https://github.com/claudegel/sinope-gt125/tree/master/custom_components/device.py",
-            "https://github.com/claudegel/sinope-gt125/tree/master/custom_components/crc8.py"
+            "https://github.com/claudegel/sinope-gt125/tree/master/custom_components/crc8.py",
+            "https://github.com/claudegel/sinope-gt125/tree/master/custom_components/const.py",
+            "https://github.com/claudegel/sinope-gt125/tree/master/custom_components/services.yaml",
         ]
     }
 }
