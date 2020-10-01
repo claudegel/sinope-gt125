@@ -84,9 +84,11 @@ sinope:
   server: '<Ip adress of your GT125>'
   id: '<ID written on the back of your GT125>' non space
   api_key: '<Api_key received on first manual connection with the GT125>' #run device.py for that
-  my_city: '<the nearest city>' #needed to get sunrise and sunset hours for your location.
+  my_city: '<the nearest city>' # needed to get sunrise and sunset hours for your location.
   scan_interval: 120 #you can go down to 60 if you want depending on how many devices you have to update. Default set to 180
   ```
+DK_KEY and MY_WEATHER parameter have been removed.
+
 ## First run
 
 To setup this custom_component, login via ssh to your Rpi and cd to the directory where you have copied the file. You don't need to edit the file device.py anymore but you will need to have the following data handy:
@@ -175,11 +177,11 @@ Automation example:
     initial_state: true
     trigger:
       platform: time_pattern
-      minutes: "/60"
+      minutes: "/60"  ## intervall to send data every hours ajust as needed
     action:
       - service: climate.set_outside_temperature
         data_template:
-          entity_id: climate.sinope_climate_office
+          entity_id: climate.sinope_climate_office  ## you can add many devices to be updated at once or a group of devices
           outside_temperature: "{{ state_attr('weather.openweathermap', 'temperature') }}"
    ```
    you can use any temperature provider; Dark Sky, Openweathermap, even an ouside sensor that give you your local temperature.
