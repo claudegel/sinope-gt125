@@ -177,7 +177,7 @@ Automation example:
     initial_state: true
     trigger:
       platform: time_pattern
-      minutes: "/60"  ## intervall to send data every hours ajust as needed
+      minutes: "/59"  ## intervall to send data every hours ajust as needed
     action:
       - service: climate.set_outside_temperature
         data_template:
