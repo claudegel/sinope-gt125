@@ -14,29 +14,31 @@ from datetime import datetime, timedelta
 
 import voluptuous as vol
 
-import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers import discovery
-from homeassistant.const import (CONF_API_KEY, CONF_ID,
-    CONF_SCAN_INTERVAL, CONF_TIME_ZONE, CONF_LONGITUDE, CONF_LATITUDE)
+from homeassistant.helpers import config_validation as cv, discovery, entity_platform, service
+from homeassistant.const import (
+    CONF_API_KEY,
+    CONF_ID,
+    CONF_SCAN_INTERVAL,
+    CONF_TIME_ZONE,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
+)
 from homeassistant.util import Throttle
 
 #REQUIREMENTS = ['PY_Sinope==0.1.7']
-REQUIREMENTS = ['crc8==0.0.5']
-VERSION = '1.1.1'
+REQUIREMENTS = ['crc8==0.1.0']
+VERSION = '1.1.2'
 
 DOMAIN = 'sinope'
 DATA_DOMAIN = 'data_' + DOMAIN
 CONF_SERVER = 'server'
-CONF_DK_KEY = 'dk_key'
 CONF_MY_CITY = 'my_city'
-CONF_MY_WEATHER = 'my_weather'
 
 _LOGGER = logging.getLogger(__name__)
 
 #default values
 SCAN_INTERVAL = timedelta(seconds=180)
 MY_CITY = 'Montreal'
-MY_WEATHER = 'dark' # put 'dark' if you still use Dark Sky weather data, 'owm' is for Openweathermap
 
 REQUESTS_TIMEOUT = 30
 
@@ -45,8 +47,6 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Required(CONF_API_KEY): cv.string,
         vol.Required(CONF_ID): cv.string,
         vol.Required(CONF_SERVER): cv.string,
-        vol.Required(CONF_DK_KEY): cv.string,
-        vol.Optional(CONF_MY_WEATHER, default=MY_WEATHER): cv.string,
         vol.Optional(CONF_MY_CITY, default=MY_CITY): cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL):
             cv.time_period
@@ -54,7 +54,7 @@ CONFIG_SCHEMA = vol.Schema({
 }, extra=vol.ALLOW_EXTRA)
 
 def setup(hass, hass_config):
-    """Set up sinope."""
+    """Setup sinope."""
     data = SinopeData(hass_config[DOMAIN])
     hass.data[DATA_DOMAIN] = data
 
@@ -84,13 +84,9 @@ class SinopeData:
         api_key = config.get(CONF_API_KEY)
         api_id = config.get(CONF_ID)
         server = config.get(CONF_SERVER)
-        dk_key = config.get(CONF_DK_KEY)
-        my_weather = config.get(CONF_MY_WEATHER)
         my_city = config.get(CONF_MY_CITY)
         tz = config.get(CONF_TIME_ZONE)
-        latitude = config.get(CONF_LATITUDE)
-        longitude = config.get(CONF_LONGITUDE)
-        self.sinope_client = SinopeClient(api_key, api_id, server, my_city, tz, latitude, longitude, dk_key, my_weather)
+        self.sinope_client = SinopeClient(api_key, api_id, server, my_city, tz)
 
     # Need some refactoring here concerning the class used to transport data
     # @Throttle(SCAN_INTERVAL)
@@ -287,16 +283,6 @@ def to_celcius(temp,unit): #unit = K for kelvin, C for celcius, F for farenheigh
 
 def from_celcius(temp):
     return round((temp+1.8)+32, 2)
-
-def get_outside_temperature(key, latitude, longitude, my_weather):
-    if my_weather == 'dark': # https://api.darksky.net/forecast/{your dark sky key}/{latitude},{logitude}
-        r = requests.get('https://api.darksky.net/forecast/'+key+'/'+latitude+','+longitude+'?exclude=minutely,hourly,daily,alerts,flags')
-        ledata =r.json()
-        return to_celcius(float(json.dumps(ledata["currently"]["temperature"])),"C")
-    else:  # https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={your api key}
-        r = requests.get('https://api.openweathermap.org/data/2.5/weather?lat={'+latitude+'}&lon={'+longitude+'}&appid={'+key+'}')
-        ledata =r.json()
-        return to_celcius(float(json.dumps(ledata["main"]["temp"])),"K")
 
 def set_away(away): #0=home,2=away
     return "01"+bytearray(struct.pack('<i', away)[:1]).hex()
@@ -589,16 +575,13 @@ def data_write_request(*arg): # data = size+data to send (command,unit_id,data_a
 
 class SinopeClient(object):
 
-    def __init__(self, api_key, api_id, server, my_city, tz, latitude, longitude, dk_key, timeout=REQUESTS_TIMEOUT):
+    def __init__(self, api_key, api_id, server, my_city, tz, timeout=REQUESTS_TIMEOUT):
         """Initialize the client object."""
         self._api_key = api_key
         self._api_id = api_id
         self._server = server
         self._my_city = my_city
         self._tz = tz
-        self._latitude = latitude
-        self._longitude = longitude
-        self._dk_key = dk_key
         self.device_data = {}
         self.device_info = {}
 
@@ -712,7 +695,7 @@ class SinopeClient(object):
         return response
 
     def set_away_mode(self, device_id, away):
-        """Set device away mode."""
+        """Set device away mode. We need to send time before sending new away mode."""
         try:
             if device_id == "all":
                 device_id = "FFFFFFFF"
@@ -767,11 +750,13 @@ class SinopeClient(object):
         except OSError:
             raise PySinopeError("Cannot send daily report to each devices")
         return result
-
-    def set_hourly_report(self):
+      
+    def set_hourly_report(self, device_id, outside_temperature):
         """we need to send temperature once per hour if we want it to be displayed on second thermostat display line"""
+        """We also need to send command to switch from setpoint temperature to outside temperature on second thermostat display"""
         try:
-            result = get_result(bytearray(send_request(self, data_report_request(data_report_command,all_unit,data_outdoor_temperature,set_temperature(get_outside_temperature(self._dk_key, self._latitude, self._longitude, self._my_weather))))).hex())
+            reply = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_display2,put_mode(1)))).hex())
+            result = get_result(bytearray(send_request(self, data_report_request(data_report_command,device_id,data_outdoor_temperature,set_temperature(outside_temperature)))).hex())
         except OSError:
             raise PySinopeError("Cannot send outside temperature report to each devices")
         return result

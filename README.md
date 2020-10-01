@@ -84,11 +84,11 @@ sinope:
   server: '<Ip adress of your GT125>'
   id: '<ID written on the back of your GT125>' non space
   api_key: '<Api_key received on first manual connection with the GT125>' #run device.py for that
-  dk_key: '<your Dark sky key>' or 'your Open weather map key'
-  my_weather: 'dark' for Dark sky api or 'owm' for Open weather map api
-  my_city: '<the nearest city>' #needed to get sunrise and sunset hours for your location.
+  my_city: '<the nearest city>' # needed to get sunrise and sunset hours for your location.
   scan_interval: 120 #you can go down to 60 if you want depending on how many devices you have to update. Default set to 180
   ```
+DK_KEY and MY_WEATHER parameter have been removed.
+
 ## First run
 
 To setup this custom_component, login via ssh to your Rpi and cd to the directory where you have copied the file. You don't need to edit the file device.py anymore but you will need to have the following data handy:
@@ -162,6 +162,30 @@ Add thoses lines to your `configuration.yaml` file
    ```
 This will set default log level to warning for all your components, except for Sinope which will display more detailed messages.
 
+## Sending outside temperature to thermostats
+
+Two parameters have been removed from configuration.yaml because we don't need them anymore: DK_KEY and MY_WEATHER.
+I have added a new service to the climate component (climate.set_outside_temperature) that allow us to send outside temperature to the thermostats.
+You just need to create and automation that will send that outside temperature to your thermostats every hour or more frequently is you wish.
+Automation example:
+```yaml
+#################################
+###       Send outside temperature to thermostats
+#################################
+  - id: hourly outside temp
+    alias: send outside temperature
+    initial_state: true
+    trigger:
+      platform: time_pattern
+      minutes: "/59"  ## intervall to send data every hours ajust as needed
+    action:
+      - service: climate.set_outside_temperature
+        data_template:
+          entity_id: climate.sinope_climate_office  ## you can add many devices to be updated at once or a group of devices
+          outside_temperature: "{{ state_attr('weather.openweathermap', 'temperature') }}"
+   ```
+   you can use any temperature provider; Dark Sky, Openweathermap, even an ouside sensor that give you your local temperature.
+   
 ## Customization
 Install Custom UI and add the following in your code:
 
