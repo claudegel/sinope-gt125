@@ -69,7 +69,7 @@ def setup(hass, hass_config):
     global SCAN_INTERVAL
     SCAN_INTERVAL = hass_config[DOMAIN].get(CONF_SCAN_INTERVAL)
     _LOGGER.debug("Setting scan interval to: %s", SCAN_INTERVAL)
-    
+
     discovery.load_platform(hass, 'climate', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'light', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'switch', DOMAIN, {}, hass_config)
@@ -87,15 +87,6 @@ class SinopeData:
         my_city = config.get(CONF_MY_CITY)
         tz = config.get(CONF_TIME_ZONE)
         self.sinope_client = SinopeClient(api_key, api_id, server, my_city, tz)
-
-    # Need some refactoring here concerning the class used to transport data
-    # @Throttle(SCAN_INTERVAL)
-    # def update(self):
-    #     """Get the latest data from pysinope."""
-    #     self.sinope_client.update()
-    #     _LOGGER.debug("Sinope data updated successfully")
-
-
 
 # According to HA:
 # https://developers.home-assistant.io/docs/en/creating_component_code_review.html
@@ -300,7 +291,7 @@ def get_away(data):
 
 def put_mode(mode): #0=off,1=freeze protect,2=manual,3=auto,5=away
     return "01"+bytearray(struct.pack('<i', mode)[:1]).hex()
- 
+
 def get_mode(data):
     sequence = data[12:20]
     deviceID = data[26:34]
@@ -649,7 +640,7 @@ class SinopeClient(object):
         # Prepare data
         self._device_data = {'intensity': intensity, 'mode': mode, 'powerWatt': powerwatt, 'alarm': 0, 'rssi': 0}
         return self._device_data
-    
+
     def get_climate_device_info(self, device_id):
         """Get information for this device."""
         # send requests
@@ -771,7 +762,7 @@ class SinopeClient(object):
         except OSError:
             raise PySinopeError("Cannot send daily report to each devices")
         return result
-      
+
     def set_hourly_report(self, device_id, outside_temperature):
         """we need to send temperature once per hour if we want it to be displayed on second thermostat display line"""
         """We also need to send command to switch from setpoint temperature to outside temperature on second thermostat display"""
