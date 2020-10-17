@@ -480,7 +480,7 @@ def send_request(self, *arg): #data
 #            _LOGGER.debug("Sinope login = ok")
             sock.sendall(arg[0])
             reply = sock.recv(1024)
-            if crc_check(reply):  # receive acknoledge, check status and if we will receive more data
+            if crc_check(reply):  # receive acknowledge, check status and if we will receive more data
                 _LOGGER.debug("Reply et longueur du data = %s - %s", len(reply), binascii.hexlify(reply))
                 deviceid = bytearray(reply).hex()[26:34]
                 if len(reply) == 19:
@@ -495,12 +495,13 @@ def send_request(self, *arg): #data
                                 _LOGGER.debug("Reply2 received: %s", binascii.hexlify(datarec))
                                 state = binascii.hexlify(datarec)[20:22]
                                 if state == b'00': # request has been queued, will receive another answer later
-                                   _LOGGER.debug("Request queued for device %s, waiting...", deviceID)
+                                    _LOGGER.debug("Request queued for device %s, waiting...", deviceID)
                                 elif state == b'0a': #we got an answer
                                     return datarec
                                     break
                                 elif state == b'0b': # we receive a push notification
                                     get_data_push(datarec)
+                                    break
                                 else:
                                     _LOGGER.debug("Bad answer received, data: %s", binascii.hexlify(datarec))
                                     error_info(state,deviceid)
@@ -535,6 +536,7 @@ def send_request(self, *arg): #data
         else:
             _LOGGER.debug("Sinope login fail, check your Api_Key and Api_ID")
     finally:
+        _LOGGER.debug("Closing socket")
         sock.close()
 
 def login_request(self):
