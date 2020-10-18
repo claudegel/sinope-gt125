@@ -11,7 +11,7 @@ import time
 from astral import Astral
 from . import crc8
 from datetime import datetime, timedelta
-
+from random import randint
 import voluptuous as vol
 
 from homeassistant.helpers import config_validation as cv, discovery, entity_platform, service
@@ -536,10 +536,12 @@ def login_request(self):
     return bytes.fromhex(login_data)+login_crc
 
 def get_seq(seq): # could be improuved
-    if seq == 0:
-        seq = seq_num
-    seq += 1
-    return str(seq)
+    sequence = ""
+    for _ in range(4):
+        value = randint(10, 99)
+        sequence += str(value)
+#    _LOGGER.debug("sequencial number = %s", sequence)
+    return sequence
 
 def count_data(data):
     size = int(len(data)/2)
