@@ -464,7 +464,6 @@ def send_request(self, *arg): #data
     while sock.connect_ex(server_address) != 0:
         _LOGGER.debug("Connect fail... waiting for socket connection...")
         time.sleep(1)
-#    sock.create_connection((server_address),10)
     try:
         sock.sendall(login_request(self))
         if bytearray(sock.recv(1024)).hex()[0:14] == "55000c00110100": #Login ok
@@ -472,7 +471,7 @@ def send_request(self, *arg): #data
             sock.sendall(arg[0])
             reply = sock.recv(1024)
             if crc_check(reply):  # receive acknowledge, check status and if we will receive more data
-                _LOGGER.debug("Reply et longueur du data = %s - %s", len(reply), binascii.hexlify(reply))
+#                _LOGGER.debug("Reply et longueur du data = %s - %s", len(reply), binascii.hexlify(reply))
                 deviceid = bytearray(reply).hex()[26:34]
                 if len(reply) == 19:
                     seq_num = binascii.hexlify(reply)[12:20] #sequence id to link response to the correct request
@@ -483,7 +482,7 @@ def send_request(self, *arg): #data
                             state = status
                             while state != b'0a':
                                 datarec = sock.recv(1024)
-                                _LOGGER.debug("Reply2 received: %s", binascii.hexlify(datarec))
+#                                _LOGGER.debug("Reply2 received: %s", binascii.hexlify(datarec))
                                 state = binascii.hexlify(datarec)[20:22]
                                 if state == b'00': # request has been queued, will receive another answer later
                                     _LOGGER.debug("Request queued for device %s, waiting...", deviceID)
@@ -508,7 +507,7 @@ def send_request(self, *arg): #data
                         return False
                 elif len(reply) > 19: # case data received with the acknowledge
                     datarec = reply[19:]
-                    _LOGGER.debug("Reply coupé = %s", binascii.hexlify(datarec))
+#                    _LOGGER.debug("Reply coupé = %s", binascii.hexlify(datarec))
                     state = binascii.hexlify(datarec)[20:22]
                     if state == b'00': # request has been queued, will receive another answer later
                         _LOGGER.debug("Request queued for device %s, waiting...", deviceID)
@@ -527,7 +526,6 @@ def send_request(self, *arg): #data
         else:
             _LOGGER.debug("Sinope login fail, check your Api_Key and Api_ID")
     finally:
-        _LOGGER.debug("Closing socket")
         sock.close()
 
 def login_request(self):
