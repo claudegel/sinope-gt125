@@ -507,7 +507,7 @@ def send_request(self, *arg): #data
                         error_info(status,deviceid)
                         return False
                 elif len(reply) > 19: # case data received with the acknowledge
-                    datarec = reply[20:]
+                    datarec = reply[19:]
                     _LOGGER.debug("Reply coupé = %s", binascii.hexlify(datarec))
                     state = binascii.hexlify(datarec)[20:22]
                     if state == b'00': # request has been queued, will receive another answer later
