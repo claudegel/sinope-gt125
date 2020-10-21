@@ -11,7 +11,7 @@ import time
 from astral import Astral
 from . import crc8
 from datetime import datetime, timedelta
-
+from random import randint
 import voluptuous as vol
 
 from homeassistant.helpers import config_validation as cv, discovery, entity_platform, service
@@ -27,7 +27,7 @@ from homeassistant.util import Throttle
 
 #REQUIREMENTS = ['PY_Sinope==0.1.7']
 REQUIREMENTS = ['crc8==0.1.0']
-VERSION = '1.1.2'
+VERSION = '1.1.3'
 
 DOMAIN = 'sinope'
 DATA_DOMAIN = 'data_' + DOMAIN
@@ -69,7 +69,7 @@ def setup(hass, hass_config):
     global SCAN_INTERVAL
     SCAN_INTERVAL = hass_config[DOMAIN].get(CONF_SCAN_INTERVAL)
     _LOGGER.debug("Setting scan interval to: %s", SCAN_INTERVAL)
-    
+
     discovery.load_platform(hass, 'climate', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'light', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'switch', DOMAIN, {}, hass_config)
@@ -87,15 +87,6 @@ class SinopeData:
         my_city = config.get(CONF_MY_CITY)
         tz = config.get(CONF_TIME_ZONE)
         self.sinope_client = SinopeClient(api_key, api_id, server, my_city, tz)
-
-    # Need some refactoring here concerning the class used to transport data
-    # @Throttle(SCAN_INTERVAL)
-    # def update(self):
-    #     """Get the latest data from pysinope."""
-    #     self.sinope_client.update()
-    #     _LOGGER.debug("Sinope data updated successfully")
-
-
 
 # According to HA:
 # https://developers.home-assistant.io/docs/en/creating_component_code_review.html
@@ -300,7 +291,7 @@ def get_away(data):
 
 def put_mode(mode): #0=off,1=freeze protect,2=manual,3=auto,5=away
     return "01"+bytearray(struct.pack('<i', mode)[:1]).hex()
- 
+
 def get_mode(data):
     sequence = data[12:20]
     deviceID = data[26:34]
@@ -473,44 +464,63 @@ def send_request(self, *arg): #data
     while sock.connect_ex(server_address) != 0:
         _LOGGER.debug("Connect fail... waiting for socket connection...")
         time.sleep(1)
-#    sock.create_connection((server_address),10)
     try:
         sock.sendall(login_request(self))
         if bytearray(sock.recv(1024)).hex()[0:14] == "55000c00110100": #Login ok
 #            _LOGGER.debug("Sinope login = ok")
             sock.sendall(arg[0])
             reply = sock.recv(1024)
-            if crc_check(reply):  # receive acknoledge, check status and if we will receive more data
-                seq_num = binascii.hexlify(reply)[12:20] #sequence id to link response to the correct request
+            if crc_check(reply):  # receive acknowledge, check status and if we will receive more data
+#                _LOGGER.debug("Reply et longueur du data = %s - %s", len(reply), binascii.hexlify(reply))
                 deviceid = bytearray(reply).hex()[26:34]
-                status = binascii.hexlify(reply)[20:22]
-                more = binascii.hexlify(reply)[24:26] #check if we will receive other data
-                if status == b'00': # request status = ok for read and write, we go on (read=00, report=01, write=00)
-                    if more == b'01': #GT125 is sending another data response
-                        state = status
-                        while state != b'0a':
-                            datarec = sock.recv(1024)
-                            state = binascii.hexlify(datarec)[20:22]
-                            if state == b'00': # request has been queued, will receive another answer later
-                                _LOGGER.debug("Request queued for device %s, waiting...", deviceID)
-                            elif state == b'0a': #we got an answer
-                                return datarec
-                                break
-                            elif state == b'0b': # we receive a push notification
-                                get_data_push(datarec)
-                            else:
-                                _LOGGER.debug("Bad answer received, data: %s", binascii.hexlify(datarec))
-                                error_info(state,deviceid)
-                                return False
-                                break
+                if len(reply) == 19:
+                    seq_num = binascii.hexlify(reply)[12:20] #sequence id to link response to the correct request
+                    status = binascii.hexlify(reply)[20:22]
+                    more = binascii.hexlify(reply)[24:26] #check if we will receive other data
+                    if status == b'00': # request status = ok for read and write, we go on (read=00, report=01, write=00)
+                        if more == b'01': #GT125 is sending another data response
+                            state = status
+                            while state != b'0a':
+                                datarec = sock.recv(1024)
+#                                _LOGGER.debug("Reply2 received: %s", binascii.hexlify(datarec))
+                                state = binascii.hexlify(datarec)[20:22]
+                                if state == b'00': # request has been queued, will receive another answer later
+                                    _LOGGER.debug("Request queued for device %s, waiting...", deviceID)
+                                elif state == b'0a': #we got an answer
+                                    return datarec
+                                    break
+                                elif state == b'0b': # we receive a push notification
+                                    get_data_push(datarec)
+                                    break
+                                else:
+                                    _LOGGER.debug("Bad answer received, data: %s", binascii.hexlify(datarec))
+                                    error_info(state,deviceid)
+                                    return False
+                                    break
+                        else:
+                            _LOGGER.debug("No more response...")
+                            return False
+                    elif status == b'01': #status ok for data report
+                        return reply
                     else:
-                        _LOGGER.debug("No more response...")
+                        error_info(status,deviceid)
                         return False
-                elif status == b'01': #status ok for data report
-                    return reply
+                elif len(reply) > 19: # case data received with the acknowledge
+                    datarec = reply[19:]
+#                    _LOGGER.debug("Reply coupé = %s", binascii.hexlify(datarec))
+                    state = binascii.hexlify(datarec)[20:22]
+                    if state == b'00': # request has been queued, will receive another answer later
+                        _LOGGER.debug("Request queued for device %s, waiting...", deviceID)
+                    elif state == b'0a': #we got an answer
+                        return datarec
+                    elif state == b'0b': # we receive a push notification
+                        get_data_push(datarec)
+                    else:
+                        _LOGGER.debug("Bad answer received, data: %s", binascii.hexlify(datarec))
+                        error_info(state,deviceid)
+                        return False
                 else:
-                    error_info(status,deviceid)
-                    return False
+                    _LOGGER.debug("Bad response, Check data %s", binascii.hexlify(reply))
             else:
                 _LOGGER.debug("Bad response, crc error...")
         else:
@@ -524,10 +534,12 @@ def login_request(self):
     return bytes.fromhex(login_data)+login_crc
 
 def get_seq(seq): # could be improuved
-    if seq == 0:
-        seq = seq_num
-    seq += 1
-    return str(seq)
+    sequence = ""
+    for _ in range(4):
+        value = randint(10, 99)
+        sequence += str(value)
+#    _LOGGER.debug("sequencial number = %s", sequence)
+    return sequence
 
 def count_data(data):
     size = int(len(data)/2)
@@ -628,7 +640,7 @@ class SinopeClient(object):
         # Prepare data
         self._device_data = {'intensity': intensity, 'mode': mode, 'powerWatt': powerwatt, 'alarm': 0, 'rssi': 0}
         return self._device_data
-    
+
     def get_climate_device_info(self, device_id):
         """Get information for this device."""
         # send requests
@@ -750,7 +762,7 @@ class SinopeClient(object):
         except OSError:
             raise PySinopeError("Cannot send daily report to each devices")
         return result
-      
+
     def set_hourly_report(self, device_id, outside_temperature):
         """we need to send temperature once per hour if we want it to be displayed on second thermostat display line"""
         """We also need to send command to switch from setpoint temperature to outside temperature on second thermostat display"""
