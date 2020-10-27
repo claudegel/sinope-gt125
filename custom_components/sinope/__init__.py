@@ -634,7 +634,7 @@ class SinopeClient(object):
         try:
             intensity = get_intensity(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_power_intensity))).hex())
             mode = get_mode(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_power_mode))).hex())
-            powerwatt = get_power_load(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_power_connected))).hex())
+            powerwatt = get_power_load(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_power_load))).hex())
         except OSError:
             raise PySinopeError("Cannot get switch data")
         # Prepare data
@@ -670,7 +670,7 @@ class SinopeClient(object):
         """Get information for this device."""
         # send requests
         try:
-            wattload = get_power_load(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_power_load))).hex())
+            wattload = get_power_load(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_power_connected))).hex())
             timer = get_timer_length(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_power_timer))).hex())
         except OSError:
             raise PySinopeError("Cannot get switch info")
