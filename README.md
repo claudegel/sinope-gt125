@@ -62,6 +62,7 @@ There are two methods to install this custom component:
       configuration.yaml
       .storage/
         sinope_devices.json
+        sinope_devices_2.json
       custom_components/
         sinope/
           __init__.py
@@ -69,6 +70,8 @@ There are two methods to install this custom component:
           switch.py
           climate.py
           device.py
+          const.py
+          services.yaml
           crc8.py
       ...
     ```
@@ -84,8 +87,11 @@ sinope:
   server: '<Ip adress of your GT125>'
   id: '<ID written on the back of your GT125>' non space
   api_key: '<Api_key received on first manual connection with the GT125>' #run device.py for that
-  my_city: '<the nearest city>' # needed to get sunrise and sunset hours for your location.
-  scan_interval: 120 #you can go down to 60 if you want depending on how many devices you have to update. Default set to 180
+  server_2: '<Ip adress of your second GT125>' <Optional>
+  id_2: '<ID written on the back of your GT125>' non space <Optional>
+  api_key_2: '<Api_key received on first manual connection with the GT125>' #run device.py for that <Optional>
+  my_city: '<the nearest city>' # needed to get sunrise and sunset hours for your location. <Optional>
+  scan_interval: 120 #you can go down to 60 if you want depending on how many devices you have to update. Default set to 180 <Optional>
   ```
 DK_KEY and MY_WEATHER parameter have been removed.
 
