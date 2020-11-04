@@ -229,7 +229,7 @@ if binascii.hexlify(send_ping_request(ping_request())) == b'55000200130021':
           watt = input()
           if watt == "":
             watt = " "
-          print('Device '+dev+' has been added to the file devices.json')
+          print('Device '+dev+' has been added to the file sinope_devices.json')
           data = '["'+dev+'", "'+name+'", "'+type+'", "'+watt+'"]'
           # write data device to file
           with io.open(CONFIG+'sinope_devices.json', 'a', encoding='utf8') as outfile:
