@@ -196,6 +196,7 @@ class SinopeThermostat(ClimateEntity):
                 'rssi': self._rssi,
                 'wattage': self._wattage,
                 'wattage_override': self._wattage_override,
+                'server': self._server,
                 'id': self._id}
 
     @property
