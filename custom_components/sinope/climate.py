@@ -102,7 +102,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
                 device_type = "{}".format(int(dev_list_2[i][2]))
                 server = 2
                 entities.append(SinopeThermostat(data, device_id, device_name, device_type, server))
-            if i == tot-1:
+            if i == tot2-1:
                 break
             i = i + 1
 
