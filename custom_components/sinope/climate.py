@@ -8,6 +8,7 @@ https://www.sinopetech.com/en/support/#api
 """
 import json
 import logging
+import os
 
 import voluptuous as vol
 import time
@@ -78,11 +79,33 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
             device_name = "{} {}".format(DEFAULT_NAME, dev_list[i][1])
             device_id = "{}".format(dev_list[i][0])
             device_type = "{}".format(int(dev_list[i][2]))
-            devices.append(SinopeThermostat(data, device_id, device_name, device_type))
+            server = 1
+            devices.append(SinopeThermostat(data, device_id, device_name, device_type, server))
         if i == tot-1:
             break
         i = i + 1
-    
+
+    if os.path.exists(CONFDIR+'sinope_devices_2.json') == True:
+        CONF_file_2 = CONFDIR + "sinope_devices_2.json"
+        dev_list_2 = []
+        with open(CONF_file_2) as g:
+            for line in g:
+                dev_list_2.append(json.loads(line))         
+        g.close()
+        i = 2
+        tot2 = len(dev_list_2)
+        for a in dev_list_2:
+            x = int(dev_list_2[i][2])
+            if x in IMPLEMENTED_DEVICE_TYPES:
+                device_name = "{} {}".format(DEFAULT_NAME, dev_list_2[i][1])
+                device_id = "{}".format(dev_list_2[i][0])
+                device_type = "{}".format(int(dev_list_2[i][2]))
+                server = 2
+                entities.append(SinopeThermostat(data, device_id, device_name, device_type, server))
+            if i == tot-1:
+                break
+            i = i + 1
+
     add_devices(devices, True)
 
 async def async_setup_entry(hass, entry):
@@ -103,9 +126,10 @@ async def async_setup_entry(hass, entry):
 class SinopeThermostat(ClimateEntity):
     """Implementation of a Sinope thermostat."""
 
-    def __init__(self, data, device_id, name, device_type):
+    def __init__(self, data, device_id, name, device_type, server):
         """Initialize."""
         self._name = name
+        self._server = server
         self._type = device_type
         self._client = data.sinope_client
         self._id = device_id
@@ -148,6 +172,11 @@ class SinopeThermostat(ClimateEntity):
         self._max_temp = device_info["tempMax"]
         return
 #            _LOGGER.warning("Cannot update %s: %s", self._name, device_data)
+
+    @property
+    def server(self):
+        """Return the server number where the device is connected"""
+        return self._server
 
     @property
     def unique_id(self):
