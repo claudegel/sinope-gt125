@@ -17,10 +17,13 @@ from . import (SCAN_INTERVAL, CONFDIR)
 from homeassistant.components.light import (LightEntity, ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT, SUPPORT_BRIGHTNESS)
 from datetime import timedelta
-
+from .const import (
+    DOMAIN,
+)
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'sinope'
+DATA_DOMAIN = 'data_' + DOMAIN
 
 STATE_AUTO = 'auto'
 STATE_MANUAL = 'manual'
