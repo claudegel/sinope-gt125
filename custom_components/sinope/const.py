@@ -1,3 +1,4 @@
+DOMAIN = "sinope"
 CONF_API_KEY_2 = "api_key_2"
 CONF_ID_2 = "id_2"
 CONF_SERVER = 'server'
