@@ -148,7 +148,7 @@ class SinopeThermostat(ClimateEntity):
     def update(self):
         """Get the latest data from Sinope and update the state."""
         start = time.time()
-        device_data = self._client.get_climate_device_data(self._id)
+        device_data = self._client.get_climate_device_data(self._server, self._id)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -165,7 +165,7 @@ class SinopeThermostat(ClimateEntity):
         self._operation_mode = device_data["mode"] if \
             device_data["mode"] is not None else SINOPE_MODE_MANUAL
 
-        device_info = self._client.get_climate_device_info(self._id)
+        device_info = self._client.get_climate_device_info(self._server, self._id)
         self._wattage = device_info["wattage"]
         self._wattage_override = device_info["wattageOverride"]
         self._min_temp = device_info["tempMin"]
@@ -280,31 +280,31 @@ class SinopeThermostat(ClimateEntity):
         temperature = kwargs.get(ATTR_TEMPERATURE)
         if temperature is None:
             return
-        self._client.set_temperature(self._id, temperature)
+        self._client.set_temperature(self._server, self._id, temperature)
         self._target_temp = temperature
 
     def set_outside_temperature(self, outside_temperature):
         """Send command to set new outside temperature."""
         if outside_temperature is None:
             return
-        self._client.set_hourly_report(self._id, outside_temperature)
+        self._client.set_hourly_report(self._server, self._id, outside_temperature)
         self._outside_temperature = outside_temperature
 
     async def async_set_outside_temperature(self, outside_temperature):
         """Send command to set new outside temperature."""
         self._client.set_hourly_report(
-            self._id, outside_temperature)
+            self._server, self._id, outside_temperature)
         self._outside_temperature = outside_temperature
 
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
         self._client.send_time(self._id)
         if hvac_mode == HVAC_MODE_OFF:
-            self._client.set_mode(self._id, self._type, SINOPE_MODE_OFF)
+            self._client.set_mode(self._server, self._id, self._type, SINOPE_MODE_OFF)
         elif hvac_mode == HVAC_MODE_HEAT:
-            self._client.set_mode(self._id, self._type, SINOPE_MODE_MANUAL)
+            self._client.set_mode(self._server, self._id, self._type, SINOPE_MODE_MANUAL)
         elif hvac_mode == HVAC_MODE_AUTO:
-            self._client.set_mode(self._id, self._type, SINOPE_MODE_AUTO)
+            self._client.set_mode(self._server, self._id, self._type, SINOPE_MODE_AUTO)
         else:
             _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
 
@@ -314,15 +314,15 @@ class SinopeThermostat(ClimateEntity):
             return
         if preset_mode == PRESET_AWAY:
             """Set away mode on device, away_on = 2 away_off =0"""
-            self._client.set_away_mode(self._id, 2)
+            self._client.set_away_mode(self._server, self._id, 2)
         elif preset_mode == PRESET_BYPASS:
             if self._operation_mode in SINOPE_BYPASSABLE_MODES:
-                self._client.set_away_mode(self._id, 0)      
-                self._client.set_mode(self._id, self._type, self._operation_mode | 
+                self._client.set_away_mode(self._server, self._id, 0)      
+                self._client.set_mode(self._server, self._id, self._type, self._operation_mode | 
                 SINOPE_BYPASS_FLAG)
         elif preset_mode == PRESET_NONE:
             # Re-apply current hvac_mode without any preset
-            self._client.set_away_mode(self._id, 0)
+            self._client.set_away_mode(self._server, self._id, 0)
             self.set_hvac_mode(self.hvac_mode)
         else:
             _LOGGER.error("Unable to set preset mode: %s.", preset_mode)
