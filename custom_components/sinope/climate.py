@@ -27,6 +27,7 @@ from homeassistant.const import (TEMP_CELSIUS, TEMP_FAHRENHEIT, ATTR_TEMPERATURE
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from .const import (
+    DOMAIN,
     ATTR_OUTSIDE_TEMPERATURE,
     SUPPORT_OUTSIDE_TEMPERATURE,
     SERVICE_SET_OUTSIDE_TEMPERATURE,
