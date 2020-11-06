@@ -120,7 +120,7 @@ class SinopeLight(LightEntity):
     def update(self):
         """Get the latest data from Sinope and update the state."""
         start = time.time()
-        device_data = self._client.get_light_device_data(self._id)
+        device_data = self._client.get_light_device_data(self._server, self._id)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -131,7 +131,7 @@ class SinopeLight(LightEntity):
             device_data["mode"] is not None else 1
         self._alarm = device_data["alarm"]
         self._rssi = device_data["rssi"]
-        device_info = self._client.get_light_device_info(self._id)
+        device_info = self._client.get_light_device_info(self._server, self._id)
         self._timer = device_info["timer"] if \
             device_info["timer"] is not None else 0
         return
@@ -188,11 +188,11 @@ class SinopeLight(LightEntity):
                 brightness_to_percentage(int(kwargs.get(ATTR_BRIGHTNESS)))
         elif self._is_dimmable:
             brightness_pct = 101 # Sets the light to last known brightness.
-        self._client.set_brightness(self._id, brightness_pct)
+        self._client.set_brightness(self._server, self._id, brightness_pct)
 
     def turn_off(self, **kwargs):
         """Turn the light off."""
-        self._client.set_brightness(self._id, 0)
+        self._client.set_brightness(self._server, self._id, 0)
 
     @property
     def device_state_attributes(self):
@@ -204,9 +204,10 @@ class SinopeLight(LightEntity):
                      'operation_mode': self.operation_mode,
                      'rssi': self._rssi,
                      'wattage_override': self._wattage_override,
+                     'timer': self._timer,
                      'server': self._server,
                      'id': self._id,
-                     'timer': self._timer})
+                     })
         return data
  
     @property
