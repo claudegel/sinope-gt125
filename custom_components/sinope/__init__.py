@@ -25,6 +25,7 @@ from homeassistant.const import (
 )
 from homeassistant.util import Throttle
 from .const import (
+    DOMAIN,
     CONF_API_KEY_2,
     CONF_ID_2,
     CONF_SERVER,
@@ -35,7 +36,6 @@ from .const import (
 REQUIREMENTS = ['crc8==0.1.0']
 VERSION = '1.1.5'
 
-DOMAIN = 'sinope'
 DATA_DOMAIN = 'data_' + DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
