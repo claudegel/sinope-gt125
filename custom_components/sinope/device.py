@@ -181,10 +181,13 @@ except NameError:
   print("Please edit device.py, line 13,14 and select the CONFIG directory according to your installation!\n")
 print('Which GT125 you want to connect to: 1 or 2 ?')
 network = input()
-if network == 1:
+if network == "1":
   conf_file = CONFIG+'sinope_devices.json'
-else:
+elif network == "2":
   conf_file = CONFIG+'sinope_devices_2.json'
+else:
+  print("Choose a network first...")
+  exit()
 if os.path.exists(conf_file) == False:
   SERVER = get_ip()
   PORT = get_port()
