@@ -186,7 +186,7 @@ if network == "1":
 elif network == "2":
   conf_file = CONFIG+'sinope_devices_2.json'
 else:
-  print("Choose a network first...")
+  print("Choose a GT125 first...")
   exit()
 if os.path.exists(conf_file) == False:
   SERVER = get_ip()
