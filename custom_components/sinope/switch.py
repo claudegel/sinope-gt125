@@ -56,6 +56,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
             device_name = "{} {}".format(DEFAULT_NAME, dev_list[i][1])
             device_id = "{}".format(dev_list[i][0])
             device_type = "{}".format(int(dev_list[i][2]))
+            server = 1
             devices.append(SinopeSwitch(data, device_id, device_name, device_type, server))
         if i == tot-1:
             break
