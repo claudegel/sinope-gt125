@@ -6,6 +6,7 @@ https://www.sinopetech.com/en/support/#api
 """
 import json
 import logging
+import os
 
 import voluptuous as vol
 import time
@@ -16,10 +17,13 @@ from homeassistant.components.switch import (SwitchEntity,
     ATTR_TODAY_ENERGY_KWH, ATTR_CURRENT_POWER_W)
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
-
+from .const import (
+    DOMAIN,
+)
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_NAME = 'sinope switch'
+DEFAULT_NAME = 'sinope'
+DATA_DOMAIN = 'data_' + DOMAIN
 
 STATE_AUTO = 'auto'
 STATE_MANUAL = 'manual'
@@ -52,19 +56,42 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
             device_name = "{} {}".format(DEFAULT_NAME, dev_list[i][1])
             device_id = "{}".format(dev_list[i][0])
             device_type = "{}".format(int(dev_list[i][2]))
-            devices.append(SinopeSwitch(data, device_id, device_name, device_type))
+            server = 1
+            devices.append(SinopeSwitch(data, device_id, device_name, device_type, server))
         if i == tot-1:
             break
         i = i + 1
+
+    if os.path.exists(CONFDIR+'sinope_devices_2.json') == True:
+        CONF_file_2 = CONFDIR + "sinope_devices_2.json"
+        dev_list_2 = []
+        with open(CONF_file_2) as g:
+            for line in g:
+                dev_list_2.append(json.loads(line))         
+        g.close()
+        i = 2
+        tot2 = len(dev_list_2)
+        for a in dev_list_2:
+            x = int(dev_list_2[i][2])
+            if x in IMPLEMENTED_DEVICE_TYPES:
+                device_name = "{} {}".format(DEFAULT_NAME, dev_list_2[i][1])
+                device_id = "{}".format(dev_list_2[i][0])
+                device_type = "{}".format(int(dev_list_2[i][2]))
+                server = 2
+                devices.append(SinopeSwitch(data, device_id, device_name, device_type, server))
+            if i == tot2-1:
+                break
+            i = i + 1
 
     add_devices(devices, True)
 
 class SinopeSwitch(SwitchEntity):
     """Implementation of a Sinope switch."""
 
-    def __init__(self, data, device_id, name, device_type):
+    def __init__(self, data, device_id, name, device_type, server):
         """Initialize."""
         self._name = name
+        self._server = server
         self._type = device_type
         self._client = data.sinope_client
         self._id = device_id
@@ -80,7 +107,7 @@ class SinopeSwitch(SwitchEntity):
     def update(self):
         """Get the latest data from Sinope and update the state."""
         start = time.time()
-        device_data = self._client.get_switch_device_data(self._id)
+        device_data = self._client.get_switch_device_data(self._server, self._id)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -93,7 +120,7 @@ class SinopeSwitch(SwitchEntity):
         self._current_power_w = device_data["powerWatt"] if \
                 device_data["powerWatt"] is not None else 0
         self._rssi = device_data["rssi"]
-        device_info = self._client.get_switch_device_info(self._id)
+        device_info = self._client.get_switch_device_info(self._server, self._id)
         self._wattage = device_info["wattage"] if \
                 device_info["wattage"] is not None else 0.0
         self._timer = device_info["timer"] if \
@@ -107,6 +134,11 @@ class SinopeSwitch(SwitchEntity):
 #        self._timer = device_info["timer"]
 #        return  
 #       _LOGGER.warning("Cannot update %s: %s", self._name, device_info)
+
+    @property
+    def server(self):
+        """Return the server number where the device is connected"""
+        return self._server
 
     @property
     def unique_id(self):
@@ -125,11 +157,11 @@ class SinopeSwitch(SwitchEntity):
 
     def turn_on(self, **kwargs):
         """Turn the device on."""
-        self._client.set_brightness(self._id, 100)
+        self._client.set_brightness(self._server, self._id, 100)
         
     def turn_off(self, **kwargs):
         """Turn the device off."""
-        self._client.set_brightness(self._id, 0)
+        self._client.set_brightness(self._server, self._id, 0)
 
     @property
     def device_state_attributes(self):
@@ -138,8 +170,10 @@ class SinopeSwitch(SwitchEntity):
                 'operation_mode': self.operation_mode,
                 'rssi': self._rssi,
                 'wattage': self._wattage,
+                'timer': self._timer,
+                'server': self._server,
                 'id': self._id,
-                'timer': self._timer}
+                }
        
     @property
     def operation_mode(self):

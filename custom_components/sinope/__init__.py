@@ -24,15 +24,19 @@ from homeassistant.const import (
     STATE_UNKNOWN,
 )
 from homeassistant.util import Throttle
-
+from .const import (
+    DOMAIN,
+    CONF_API_KEY_2,
+    CONF_ID_2,
+    CONF_SERVER,
+    CONF_SERVER_2,
+    CONF_MY_CITY,
+)
 #REQUIREMENTS = ['PY_Sinope==0.1.7']
 REQUIREMENTS = ['crc8==0.1.0']
-VERSION = '1.1.4'
+VERSION = '1.1.5'
 
-DOMAIN = 'sinope'
 DATA_DOMAIN = 'data_' + DOMAIN
-CONF_SERVER = 'server'
-CONF_MY_CITY = 'my_city'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,6 +51,9 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Required(CONF_API_KEY): cv.string,
         vol.Required(CONF_ID): cv.string,
         vol.Required(CONF_SERVER): cv.string,
+        vol.Optional(CONF_API_KEY_2): cv.string,
+        vol.Optional(CONF_ID_2): cv.string,
+        vol.Optional(CONF_SERVER_2): cv.string,
         vol.Optional(CONF_MY_CITY, default=MY_CITY): cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL):
             cv.time_period
@@ -84,9 +91,12 @@ class SinopeData:
         api_key = config.get(CONF_API_KEY)
         api_id = config.get(CONF_ID)
         server = config.get(CONF_SERVER)
+        api_key_2 = config.get(CONF_API_KEY_2)
+        api_id_2 = config.get(CONF_ID_2)
+        server_2 = config.get(CONF_SERVER_2)
         my_city = config.get(CONF_MY_CITY)
         tz = config.get(CONF_TIME_ZONE)
-        self.sinope_client = SinopeClient(api_key, api_id, server, my_city, tz)
+        self.sinope_client = SinopeClient(api_key, api_id, server, my_city, tz, api_key_2, api_id_2, server_2)
 
 # According to HA:
 # https://developers.home-assistant.io/docs/en/creating_component_code_review.html
@@ -458,14 +468,20 @@ def error_info(bug,device):
     else:
         _LOGGER.debug("in request for %s : Unknown error (%s).", device, bug)
 
-def send_request(self, *arg): #data
+def send_request(self, serv, *arg): #data
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_address = (self._server, PORT)
+    if serv == 1:
+        server_address = (self._server, PORT)
+    else:
+        server_address = (self._server_2, PORT)
     while sock.connect_ex(server_address) != 0:
         _LOGGER.debug("Connect fail... waiting for socket connection...")
         time.sleep(1)
     try:
-        sock.sendall(login_request(self))
+        if serv == 1:
+            sock.sendall(login_request(self))
+        else:
+            sock.sendall(login_request_2(self))
         if bytearray(sock.recv(1024)).hex()[0:14] == "55000c00110100": #Login ok
 #            _LOGGER.debug("Sinope login = ok")
             sock.sendall(arg[0])
@@ -533,12 +549,16 @@ def login_request(self):
     login_crc = bytes.fromhex(crc_count(bytes.fromhex(login_data)))
     return bytes.fromhex(login_data)+login_crc
 
-def get_seq(seq): # could be improuved
+def login_request_2(self):
+    login_data = "550012001001"+invert(self._api_id_2)+self._api_key_2
+    login_crc = bytes.fromhex(crc_count(bytes.fromhex(login_data)))
+    return bytes.fromhex(login_data)+login_crc
+
+def get_seq(seq):
     sequence = ""
     for _ in range(4):
         value = randint(10, 99)
         sequence += str(value)
-#    _LOGGER.debug("sequencial number = %s", sequence)
     return sequence
 
 def count_data(data):
@@ -587,11 +607,14 @@ def data_write_request(*arg): # data = size+data to send (command,unit_id,data_a
 
 class SinopeClient(object):
 
-    def __init__(self, api_key, api_id, server, my_city, tz, timeout=REQUESTS_TIMEOUT):
+    def __init__(self, api_key, api_id, server, my_city, tz, api_key_2, api_id_2, server_2, timeout=REQUESTS_TIMEOUT):
         """Initialize the client object."""
         self._api_key = api_key
         self._api_id = api_id
         self._server = server
+        self._api_key_2 = api_key_2
+        self._api_id_2 = api_id_2
+        self._server_2 = server_2
         self._my_city = my_city
         self._tz = tz
         self.device_data = {}
@@ -599,176 +622,176 @@ class SinopeClient(object):
 
 # retreive data from devices
 
-    def get_climate_device_data(self, device_id):
+    def get_climate_device_data(self, server, device_id):
         """Get device data."""
         # send requests
         try:
-            temperature = get_temperature(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_temperature))).hex())
-            setpoint = get_temperature(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_setpoint))).hex())
-            heatlevel = get_heat_level(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_heat_level))).hex())
-            mode = get_mode(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_mode))).hex())
-            away = get_away(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_away))).hex())
+            temperature = get_temperature(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_temperature))).hex())
+            setpoint = get_temperature(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_setpoint))).hex())
+            heatlevel = get_heat_level(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_heat_level))).hex())
+            mode = get_mode(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_mode))).hex())
+            away = get_away(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_away))).hex())
         except OSError:
             raise PySinopeError("Cannot get climate data")
         # Prepare data
         self._device_data = {'setpoint': setpoint, 'mode': mode, 'alarm': 0, 'rssi': 0, 'temperature': temperature, 'heatLevel': heatlevel, 'away': away}
         return self._device_data
 
-    def get_light_device_data(self, device_id):
+    def get_light_device_data(self, server, device_id):
         """Get device data."""
         # Prepare return
         data = {}
         # send requests
         try:
-            intensity = get_intensity(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_light_intensity))).hex())
-            mode = get_mode(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_light_mode))).hex())
+            intensity = get_intensity(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_light_intensity))).hex())
+            mode = get_mode(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_light_mode))).hex())
         except OSError:
             raise PySinopeError("Cannot get light data")
         # Prepare data
         self._device_data = {'intensity': intensity, 'mode': mode, 'alarm': 0, 'rssi': 0}
         return self._device_data
 
-    def get_switch_device_data(self, device_id):
+    def get_switch_device_data(self, server, device_id):
         """Get device data."""
         # send requests
         try:
-            intensity = get_intensity(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_power_intensity))).hex())
-            mode = get_mode(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_power_mode))).hex())
-            powerwatt = get_power_load(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_power_load))).hex())
+            intensity = get_intensity(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_power_intensity))).hex())
+            mode = get_mode(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_power_mode))).hex())
+            powerwatt = get_power_load(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_power_load))).hex())
         except OSError:
             raise PySinopeError("Cannot get switch data")
         # Prepare data
         self._device_data = {'intensity': intensity, 'mode': mode, 'powerWatt': powerwatt, 'alarm': 0, 'rssi': 0}
         return self._device_data
 
-    def get_climate_device_info(self, device_id):
+    def get_climate_device_info(self, server, device_id):
         """Get information for this device."""
         # send requests
         try:
-            tempmax = get_temperature(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_max_temp))).hex())
-            tempmin = get_temperature(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_min_temp))).hex())
-            wattload = get_power_load(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_load))).hex())
-            wattoveride = get_power_load(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_power_connected))).hex())
+            tempmax = get_temperature(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_max_temp))).hex())
+            tempmin = get_temperature(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_min_temp))).hex())
+            wattload = get_power_load(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_load))).hex())
+            wattoveride = get_power_load(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_power_connected))).hex())
         except OSError:
             raise PySinopeError("Cannot get climate info")
         # Prepare data
         self._device_info = {'active': 1, 'tempMax': tempmax, 'tempMin': tempmin, 'wattage': wattload, 'wattageOverride': wattoveride}
         return self._device_info
 
-    def get_light_device_info(self, device_id):
+    def get_light_device_info(self, server, device_id):
         """Get information for this device."""
         # send requests
         try:
-            timer = get_timer_length(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_light_timer))).hex())
+            timer = get_timer_length(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_light_timer))).hex())
         except OSError:
             raise PySinopeError("Cannot get light info")
         # Prepare data
         self._device_info = {'active': 1, 'timer': timer}
         return self._device_info
 
-    def get_switch_device_info(self, device_id):
+    def get_switch_device_info(self, server, device_id):
         """Get information for this device."""
         # send requests
         try:
-            wattload = get_power_load(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_power_connected))).hex())
-            timer = get_timer_length(bytearray(send_request(self, data_read_request(data_read_command,device_id,data_power_timer))).hex())
+            wattload = get_power_load(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_power_connected))).hex())
+            timer = get_timer_length(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_power_timer))).hex())
         except OSError:
             raise PySinopeError("Cannot get switch info")
         # Prepare data
         self._device_info = {'active': 1, 'wattage': wattload, 'timer': timer}
         return self._device_info
 
-    def set_brightness(self, device_id, brightness):
+    def set_brightness(self, server, device_id, brightness):
         """Set device intensity."""
         try:
-            response = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_light_intensity,set_intensity(brightness)))).hex())
+            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_light_intensity,set_intensity(brightness)))).hex())
         except OSError:
             raise PySinopeError("Cannot set device brightness")
         return response
 
-    def send_time(self, device_id):
+    def send_time(self, server, device_id):
         """Send current time to device. it is required to set device mode to auto"""
         try:
-            response = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_time,set_time(self._tz)))).hex())
+            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_time,set_time(self._tz)))).hex())
         except OSError:
             raise PySinopeError("Cannot send current time to device")
         return response
 
-    def set_mode(self, device_id, device_type, mode):
+    def set_mode(self, server, device_id, device_type, mode):
         """Set device operation mode."""
         # prepare data
         try:
             if int(device_type) < 100:
-                response = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_mode,put_mode(mode)))).hex())
+                response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_mode,put_mode(mode)))).hex())
             else:
-                response = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_light_mode,put_mode(mode)))).hex())
+                response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_light_mode,put_mode(mode)))).hex())
         except OSError:
             raise PySinopeError("Cannot set device operation mode")
         return response
 
-    def set_away_mode(self, device_id, away):
+    def set_away_mode(self, server, device_id, away):
         """Set device away mode. We need to send time before sending new away mode."""
         try:
             if device_id == "all":
                 device_id = "FFFFFFFF"
-                result = get_result(bytearray(send_request(self, data_report_request(data_report_command,device_id,data_time,set_time(self._tz)))).hex())
-                response = get_result(bytearray(send_request(self, data_report_request(data_report_command,device_id,data_away,set_away(away)))).hex())
+                result = get_result(bytearray(send_request(self, server, data_report_request(data_report_command,device_id,data_time,set_time(self._tz)))).hex())
+                response = get_result(bytearray(send_request(self, server, data_report_request(data_report_command,device_id,data_away,set_away(away)))).hex())
             else:
-                result = get_result(bytearray(send_request(self, data_report_request(data_report_command,device_id,data_time,set_time(self._tz)))).hex())
-                response = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_away,set_away(away)))).hex())
+                result = get_result(bytearray(send_request(self, server, data_report_request(data_report_command,device_id,data_time,set_time(self._tz)))).hex())
+                response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_away,set_away(away)))).hex())
         except OSError:
             raise PySinopeError("Cannot set device away")
         return response 
 
-    def set_temperature(self, device_id, temperature):
+    def set_temperature(self, server, device_id, temperature):
         """Set device temperature."""
         try:
-            response = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_setpoint,set_temperature(temperature)))).hex())
+            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_setpoint,set_temperature(temperature)))).hex())
         except OSError:
             raise PySinopeError("Cannot set device setpoint temperature")
         return response
 
-    def set_timer(self, device_id, timer_length):
+    def set_timer(self, server, device_id, timer_length):
         """Set device timer length."""
         try:
-            response = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_light_timer,set_timer_length(timer_length)))).hex())
+            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_light_timer,set_timer_length(timer_length)))).hex())
         except OSError:
             raise PySinopeError("Cannot set device timer length")
         return response
 
-    def set_all_away(self, away):
+    def set_all_away(self, server, away):
         """Set all devices to away mode 0=home, 2=away"""
         try:
-            response = get_result(bytearray(send_request(self, data_report_request(data_report_command,all_unit,data_away,set_away(away)))).hex())
+            response = get_result(bytearray(send_request(self, server, data_report_request(data_report_command,all_unit,data_away,set_away(away)))).hex())
         except OSError:
             raise PySinopeError("Cannot set all devices to away or home mode")
         return response
 
-    def set_keyboard_lock(self, device_id, lock):
+    def set_keyboard_lock(self, server, device_id, lock):
         """lock/unlock device keyboard, unlock=0, lock=1"""
         try:
-            response = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_lock,set_lock(lock)))).hex())
+            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_lock,set_lock(lock)))).hex())
         except OSError:
             raise PySinopeError("Cannot change lock device state")
         return response
 
-    def set_daily_report(self):
+    def set_daily_report(self, server):
         """Set report to send data to each devices once a day. Needed to get proper auto mode operation"""
         try:
-            result = get_result(bytearray(send_request(self, data_report_request(data_report_command,all_unit,data_time,set_time(self._tz)))).hex())
-            result = get_result(bytearray(send_request(self, data_report_request(data_report_command,all_unit,data_date,set_date(self._tz)))).hex())
-            result = get_result(bytearray(send_request(self, data_report_request(data_report_command,all_unit,data_sunrise,set_sun_time(self._my_city, self._tz, "sunrise")))).hex())
-            result = get_result(bytearray(send_request(self, data_report_request(data_report_command,all_unit,data_sunset,set_sun_time(self._my_city, self._tz, "sunset")))).hex())
+            result = get_result(bytearray(send_request(self, server, data_report_request(data_report_command,all_unit,data_time,set_time(self._tz)))).hex())
+            result = get_result(bytearray(send_request(self, server, data_report_request(data_report_command,all_unit,data_date,set_date(self._tz)))).hex())
+            result = get_result(bytearray(send_request(self, server, data_report_request(data_report_command,all_unit,data_sunrise,set_sun_time(self._my_city, self._tz, "sunrise")))).hex())
+            result = get_result(bytearray(send_request(self, server, data_report_request(data_report_command,all_unit,data_sunset,set_sun_time(self._my_city, self._tz, "sunset")))).hex())
         except OSError:
             raise PySinopeError("Cannot send daily report to each devices")
         return result
 
-    def set_hourly_report(self, device_id, outside_temperature):
+    def set_hourly_report(self, server, device_id, outside_temperature):
         """we need to send temperature once per hour if we want it to be displayed on second thermostat display line"""
         """We also need to send command to switch from setpoint temperature to outside temperature on second thermostat display"""
         try:
-            reply = get_result(bytearray(send_request(self, data_write_request(data_write_command,device_id,data_display2,put_mode(1)))).hex())
-            result = get_result(bytearray(send_request(self, data_report_request(data_report_command,device_id,data_outdoor_temperature,set_temperature(outside_temperature)))).hex())
+            reply = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_display2,put_mode(1)))).hex())
+            result = get_result(bytearray(send_request(self, server, data_report_request(data_report_command,device_id,data_outdoor_temperature,set_temperature(outside_temperature)))).hex())
         except OSError:
             raise PySinopeError("Cannot send outside temperature report to each devices")
         return result

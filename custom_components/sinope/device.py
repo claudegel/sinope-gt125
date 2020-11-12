@@ -14,8 +14,7 @@ if os.path.isdir("/home/homeassistant/.homeassistant"):
   CONFIG = "/home/homeassistant/.homeassistant/.storage/"
 else:
   CONFIG = "/config/.storage/"
-#CONFIG = "/home/homeassistant/.homeassistant/.storage/" #uncomment this line if you are on Hassbian
-#CONFIG = "/config/.storage/" # uncomment this line if you are on Hass.io
+
 def invert(id):
     """The Api_ID must be sent in reversed order"""
     k1 = id[14:16]
@@ -123,8 +122,8 @@ def send_key_request(data):
     finally:
       sock.close()
 
-def write_config(ip,key,id,port):
-    with open(CONFIG+'sinope_devices.json', 'w', encoding='utf8') as outfile:
+def write_config(ip,key,id,port,conffile):
+    with open(conffile, 'w', encoding='utf8') as outfile:
       data = '["'+ip+'", "'+key+'", "'+id+'", '+str(port)+']' 
       outfile.write(data)
       outfile.write('\n')
@@ -133,9 +132,9 @@ def write_config(ip,key,id,port):
     outfile.close()
     return True
   
-def read_config():
+def read_config(conffile):
     conf_list = []
-    with open(CONFIG+'sinope_devices.json') as f:
+    with open(conffile) as f:
         for line in f:
             conf_list.append(json.loads(line))         
     f.close()
@@ -146,6 +145,7 @@ def get_ip():
     while ip == "":
       print('What is your GT125 IP address: xxx.xxx.xxx.xxx')
       ip = input()
+      print("IP="+ip)
       if ip == "":
         print("You must enter a valid IP address")
       else:
@@ -156,6 +156,7 @@ def get_id():
     while id == "":
       print('What is your GT125 ID (written on the back of the device)')
       id = input()
+      print("ID="+id)
       if id == "":
         print("You must enter a valid ID code")
       else:
@@ -166,7 +167,7 @@ def get_port():
     while port == 0:
       print("Write your GT125 port number (default: 4550)")
       port = input()
-      print("port="+port)
+      print("Port="+port)
       if port == "":
         print("You must enter a valid port number")
         port = 0
@@ -178,14 +179,22 @@ try:
   CONFIG
 except NameError:
   print("Please edit device.py, line 13,14 and select the CONFIG directory according to your installation!\n")
-
-if os.path.exists(CONFIG+'sinope_devices.json') == False:
+print('Which GT125 you want to connect to: 1 or 2 ?')
+network = input()
+if network == "1":
+  conf_file = CONFIG+'sinope_devices.json'
+elif network == "2":
+  conf_file = CONFIG+'sinope_devices_2.json'
+else:
+  print("Choose a GT125 first...")
+  exit()
+if os.path.exists(conf_file) == False:
   SERVER = get_ip()
   PORT = get_port()
   Api_ID = get_id()
   Api_Key = None
 else:
-  conf = read_config()
+  conf = read_config(conf_file)
   PORT = int("{}".format(conf[3]))
   SERVER = "{}".format(conf[0])
   Api_Key ="{}".format(conf[1])
@@ -197,14 +206,14 @@ if binascii.hexlify(send_ping_request(ping_request())) == b'55000200130021':
         print("push the GT125 <web> button")
         Api_Key = retreive_key(binascii.hexlify(send_key_request(key_request(invert(Api_ID)))))[0:16].decode("utf-8")
         print('Api key : ',Api_Key)
-        print("Writing config to file "+CONFIG+"sinope_devices.json ...")
-        write_config(SERVER,Api_Key,Api_ID,PORT)
+        print("Writing config to file "+conf_file+"...")
+        write_config(SERVER,Api_Key,Api_ID,PORT,conf_file)
         if CONFIG == "/home/homeassistant/.homeassistant/.storage/":
           owner='homeassistant'
           group='homeassistant'
           uid = pwd.getpwnam(owner).pw_uid
           gid = grp.getgrnam(group).gr_gid
-          os.chown(CONFIG+"sinope_devices.json",uid,gid)
+          os.chown(conf_file,uid,gid)
         print("Run this program again to add your devices")
     else:
       # finding device ID, one by one
@@ -229,10 +238,10 @@ if binascii.hexlify(send_ping_request(ping_request())) == b'55000200130021':
           watt = input()
           if watt == "":
             watt = " "
-          print('Device '+dev+' has been added to the file devices.json')
+          print('Device '+dev+' has been added to the file '+conf_file)
           data = '["'+dev+'", "'+name+'", "'+type+'", "'+watt+'"]'
           # write data device to file
-          with io.open(CONFIG+'sinope_devices.json', 'a', encoding='utf8') as outfile:
+          with io.open(conf_file, 'a', encoding='utf8') as outfile:
             outfile.write('\n')
             outfile.write(data)
           outfile.close()
@@ -240,5 +249,5 @@ if binascii.hexlify(send_ping_request(ping_request())) == b'55000200130021':
           quit = input()
           if quit == "q":
             break
-      print('Once finished, edit file '+CONFIG+'sinope_devices.json to add more information about your devices.')
+      print('Once finished, edit file '+conf_file+' to add more information about your devices.')
       print('Device type are listed in climate.py, light.py and switch.py')
