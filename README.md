@@ -85,11 +85,11 @@ To enable Sinope management in your installation, add the following to your `con
 # Example configuration.yaml entry
 sinope:
   server: '<Ip adress of your GT125>'
-  id: '<ID written on the back of your GT125>' non space
+  id: '<ID written on the back of your GT125>' no space
   api_key: '<Api_key received on first manual connection with the GT125>' #run device.py for that
   server_2: '<Ip adress of your second GT125>' <Optional>
-  id_2: '<ID written on the back of your GT125>' non space <Optional>
-  api_key_2: '<Api_key received on first manual connection with the GT125>' <Optional> #run device.py for that 
+  id_2: '<ID written on the back of your second GT125>' <Optional> no space 
+  api_key_2: '<Api_key received on first manual connection with the second GT125>' <Optional> #run device.py for that 
   my_city: '<the nearest city>' # needed to get sunrise and sunset hours for your location. <Optional>
   scan_interval: 120 #you can go down to 60 if you want depending on how many devices you have to update. Default set to 180 <Optional>
   ```
@@ -98,9 +98,11 @@ DK_KEY and MY_WEATHER parameter have been removed.
 ## First run
 
 To setup this custom_component, login via ssh to your Rpi and cd to the directory where you have copied the file. You don't need to edit the file device.py anymore but you will need to have the following data handy:
+On start device.py will ask which GT125 you want to configure; server #1 or server #2
 - IP adress of the GT125,
 - GT125 device ID, written on the back of the device,
 - Port number to connect to the GT125. should be 4550 (default),
+if you have to configure two GT125 you need to have both data handy. With device.py you can run it many time to add devices to any of your two GT125. If you have only one GT125 just homit the parameter for the second one.
 - the required library crc8.py should be installed automatically. if not use this command: sudo pip3 install crc8. For python3.7,  use command: sudo python3.7 -m pip install crc8. For Hass.io you already run as root so you don't need sudo.
 - For easyer install on Hass.io add the package SSH & Web Terminal. With this you don't need to install SSH and you'll be able to edit your config and run device.py directly in a web console inside of HA.
 - to install HACS via that console run the commande:
@@ -108,8 +110,8 @@ To setup this custom_component, login via ssh to your Rpi and cd to the director
 
 Execute the command: 'sudo python3 device.py' in console (for python3.7: 'sudo python3.7 device.py'). Sudo is required for file permission fix. In Hass.io you don't need sudo. This is required to install the data above and to get the Api_Key and later the deviceID for each Sinopé devices connected to your GT125. On first run, device.py ask for IP, Api ID and port number then send a ping request to the GT125. It will then ask you to push de "WEB" button on the GT125. This will give you the Api Key.
 
-- Once you get your Api_Key, all data will be written in the config file '«config»/.storage/sinope_devices.json'.
-- On the next run of device.py, you will start to get the device_id for all devices connected to your GT125.  See devices discovery bellow.
+- Once you get your Api_Key, all data will be written in the config file '«config»/.storage/sinope_devices.json' or '«config»/.storage/sinope_devices_2.json' for the second GT125.
+- On the next run of device.py, you will start to get the device_id for all devices connected to your GT125.  See devices discovery bellow. Each time you run device.py it will ask for which Gt125, #1 or #2 you want to add devices.
 
 You're ready to setup your Sinopé devices.
 
@@ -131,10 +133,10 @@ This is the same for data write request but in that case we normally send one da
 to one device. One exception is when we sent request to change mode to auto. We need to send correct time prior to send write request for auto mode.
 
 For the data report request it is possible to send data to all device at once by using a specific deviceID = FFFFFFFF. 
-It is used to send time, date, sunset and sunrise hour, outside temperature, set all device to away mode, etc, broadcasted to all device.
+It is used to send time, date, sunset and sunrise hour, outside temperature, set all device to away mode, etc, report is broadcasted to all devices.
 
 ## Devices discovery
-Look like the GT125 use a different deviceID then the Neviweb portal. Once you have your Api_key written in sinope_devices.json, you will need to run device.py to request deviceID for each devices on your network one by one. The program will wait for you to push on both button of your device to revceive there deviceID. Then, device.py will ask for device data like name, type and connected watt load. To get the list of devices types just type "h" when asked for device type. This will display all known types and then ask for your device type. If you don't have all information just hit enter to leave those fields blank. It will be possible to add missing data later. All devices ID and data will be written in the file 'config/.storage/sinope_devices.json' to insure that any new update won't overwrite it. Once you have all your devices, hit "q" at the end to quit the program. Edit 'config/.storage/sinope_devices.json' and add the name, type and wattage (for light devices) for each devices if needed. Light connected watt load is not measured by the light devices but instead written in Neviweb devices on setup of light devices. We need to write it to devices.json (kind of Neviweb portal equivalent) to finish the devices setup. ex:
+Look like the GT125 use a different deviceID then the Neviweb portal. Once you have your Api_key written in sinope_devices.json, you will need to run device.py to request deviceID for each devices on your network one by one. The program will wait for you to push on both button of your device to revceive there deviceID. Then, device.py will ask for device data like name, type and connected watt load. To get the list of devices types just type "h" when asked for device type. This will display all known types and then ask for your device type. If you don't have all information just hit enter to leave those fields blank. It will be possible to add missing data later. All devices ID and data will be written in the file 'config/.storage/sinope_devices.json' or 'config/.storage/sinope_devices_2.json' to insure that any new update won't overwrite it. Once you have all your devices, hit "q" at the end to quit the program. Edit 'config/.storage/sinope_devices.json' and add the name, type and wattage (for light devices) for each devices if needed. Light connected watt load is not measured by the light devices but instead written in Neviweb devices on setup of light devices. We need to write it to 'config/.storage/sinope_devices.json' (kind of Neviweb portal equivalent) to finish the devices setup. ex:
 
 ```yaml
 ["IP", "Api Key", "Api ID", "PORT"] <- do not erase this line
@@ -146,7 +148,7 @@ Look like the GT125 use a different deviceID then the Neviweb portal. Once you h
 ["00470100", "Dimmer TV Room", "112", "110"] <- Dimmer ex.
 ```
 For power switch devices, RM3250RF and RM3200RF, you need to push on the top blue ligth (with the wifi logo) to get the deviceID.
-Each time you will add a new device to your GT125 you will need to run that setup.
+Each time you will add a new device to your GT125 you will need to run that device.py setup.
 
 ## Troubleshooting
 If you get a stack trace related to a Sinope component in your `home-assistant.log` file, you can file an issue in this repository.
