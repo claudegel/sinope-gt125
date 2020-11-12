@@ -62,7 +62,7 @@ There are two methods to install this custom component:
       configuration.yaml
       .storage/
         sinope_devices.json
-        sinope_devices_2.json  ##if you have two GT125
+        sinope_devices_2.json  (if you have two GT125)
       custom_components/
         sinope/
           __init__.py
