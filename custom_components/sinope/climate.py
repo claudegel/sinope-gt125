@@ -140,11 +140,14 @@ class SinopeThermostat(ClimateEntity):
         self._min_temp = None
         self._max_temp = None
         self._target_temp = None
+        self._target_temp_before = None
         self._cur_temp = None
+        self._cur_temp_before = None
         self._rssi = None
         self._alarm = None
         self._operation_mode = 2
         self._heat_level = None
+        self._heat_level_before = None
         _LOGGER.debug("Setting up %s: %s", self._name, self._id)
 
     def update(self):
@@ -156,12 +159,15 @@ class SinopeThermostat(ClimateEntity):
         _LOGGER.debug("Updating %s (%s sec): %s",
             self._name, elapsed, device_data)
 
+        self._cur_temp_before = self._cur_temp
         self._cur_temp = float(device_data["temperature"]) if \
-            device_data["temperature"] is not None else 0.0
+            device_data["temperature"] is not None else self._cur_temp_before
+        self._target_temp_before = self._target_temp
         self._target_temp = float(device_data["setpoint"]) if \
-            device_data["setpoint"] is not None else 0.0
+            device_data["setpoint"] is not None else self._target_temp_before
+        self._heat_level_before = self._heat_level
         self._heat_level = device_data["heatLevel"] if \
-            device_data["heatLevel"] is not None else 0
+            device_data["heatLevel"] is not None else self._heat_level_before
         self._alarm = device_data["alarm"]
         self._rssi = device_data["rssi"]
         self._operation_mode = device_data["mode"] if \
