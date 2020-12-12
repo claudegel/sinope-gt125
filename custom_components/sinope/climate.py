@@ -306,7 +306,7 @@ class SinopeThermostat(ClimateEntity):
 
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
-        self._client.send_time(self._id)
+        self._client.send_time(self._server, self._id)
         if hvac_mode == HVAC_MODE_OFF:
             self._client.set_mode(self._server, self._id, self._type, SINOPE_MODE_OFF)
         elif hvac_mode == HVAC_MODE_HEAT:
