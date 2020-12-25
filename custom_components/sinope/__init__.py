@@ -14,7 +14,13 @@ from datetime import datetime, timedelta
 from random import randint
 import voluptuous as vol
 
-from homeassistant.helpers import config_validation as cv, discovery, entity_platform, service
+from homeassistant.helpers import (
+    config_validation as cv,
+    discovery,
+    entity_platform,
+    service,
+)
+
 from homeassistant.const import (
     CONF_API_KEY,
     CONF_ID,
@@ -23,6 +29,7 @@ from homeassistant.const import (
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
 )
+
 from homeassistant.util import Throttle
 from .const import (
     DOMAIN,
@@ -31,10 +38,23 @@ from .const import (
     CONF_SERVER,
     CONF_SERVER_2,
     CONF_MY_CITY,
+    ATTR_OUTSIDE_TEMPERATURE,
+    ATTR_KEYPAD_LOCK,
+    ATTR_TIMER,
+    ATTR_DISPLAY,
+    SUPPORT_OUTSIDE_TEMPERATURE,
+    SUPPORT_KEYPAD_LOCK,
+    SUPPORT_TIMER,
+    SUPPORT_SECOND_DISPLAY,
+    SERVICE_SET_OUTSIDE_TEMPERATURE,
+    SERVICE_SET_KEYPAD_LOCK,
+    SERVICE_SET_TIMER,
+    SERVICE_SET_SECOND_DISPLAY,
 )
+
 #REQUIREMENTS = ['PY_Sinope==0.1.7']
 REQUIREMENTS = ['crc8==0.1.0']
-VERSION = '1.1.7'
+VERSION = '1.2.0'
 
 DATA_DOMAIN = 'data_' + DOMAIN
 
@@ -60,7 +80,7 @@ CONFIG_SCHEMA = vol.Schema({
     })
 }, extra=vol.ALLOW_EXTRA)
 
-def setup(hass, hass_config):
+def setup(hass, hass_config) -> bool:
     """Setup sinope."""
     data = SinopeData(hass_config[DOMAIN])
     hass.data[DATA_DOMAIN] = data
@@ -151,7 +171,7 @@ data_early_start = "60080000"  #0=disabled, 1=enabled
 # light and dimmer
 data_light_intensity = "00100000"  # 0 to 100, off to on, 101 = last level
 data_light_mode = "09100000"  # 1=manual, 2=auto, 3=random or away, 130= bypass auto
-data_light_timer = "000F0000"   # time in minutes the light will stay on 0--255
+data_light_timer = "000F0000"   # time in minutes the light will stay on 0=off, 1--255 = on
 data_light_event = "010F0000"  #0= no event sent, 1=timer active, 2= event sent for turn_on or turn_off
 
 # Power control
@@ -160,7 +180,7 @@ data_power_mode = "09100000"  # 1=manual, 2=auto, 3=random or away, 130= bypass 
 data_power_connected = "000D0000" # actual load connected to the device
 data_power_load = "020D0000" # load used by the device
 data_power_event = "010F0000"  #0= no event sent, 1=timer active, 2= event sent for turn_on or turn_off
-data_power_timer = "000F0000" # time in minutes the power will stay on 0--255
+data_power_timer = "000F0000" # time in minutes the power will stay on 0=off, 1--255 = on
 
 # general
 data_lock = "02090000" # 0 = unlock, 1 = lock, for keyboard device
@@ -498,10 +518,10 @@ def send_request(self, serv, *arg): #data
                             state = status
                             while state != b'0a':
                                 datarec = sock.recv(1024)
-#                                _LOGGER.debug("Reply2 received: %s", binascii.hexlify(datarec))
+#                                _LOGGER.debug("Reply2 received for device %s, %s", deviceid, binascii.hexlify(datarec))
                                 state = binascii.hexlify(datarec)[20:22]
                                 if state == b'00': # request has been queued, will receive another answer later
-                                    _LOGGER.debug("Request queued for device %s, waiting...", deviceID)
+                                    _LOGGER.debug("Request queued for device %s, waiting...", deviceid)
                                 elif state == b'0a': #we got an answer
                                     return datarec
                                     break
@@ -536,7 +556,7 @@ def send_request(self, serv, *arg): #data
                         error_info(state,deviceid)
                         return False
                 else:
-                    _LOGGER.debug("Bad response, Check data %s", binascii.hexlify(reply))
+                    _LOGGER.debug("Bad response, Check data send request %s", binascii.hexlify(reply))
             else:
                 _LOGGER.debug("Bad response, crc error...")
         else:
@@ -672,10 +692,11 @@ class SinopeClient(object):
             tempmin = get_temperature(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_min_temp))).hex())
             wattload = get_power_load(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_load))).hex())
             wattoveride = get_power_load(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_power_connected))).hex())
+            keyboard = get_lock(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_lock))).hex())
         except OSError:
             raise PySinopeError("Cannot get climate info")
         # Prepare data
-        self._device_info = {'active': 1, 'tempMax': tempmax, 'tempMin': tempmin, 'wattage': wattload, 'wattageOverride': wattoveride}
+        self._device_info = {'active': 1, 'tempMax': tempmax, 'tempMin': tempmin, 'wattage': wattload, 'wattageOverride': wattoveride, 'keypad': keyboard}
         return self._device_info
 
     def get_light_device_info(self, server, device_id):
@@ -683,10 +704,11 @@ class SinopeClient(object):
         # send requests
         try:
             timer = get_timer_length(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_light_timer))).hex())
+            keyboard = get_lock(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_lock))).hex())
         except OSError:
             raise PySinopeError("Cannot get light info")
         # Prepare data
-        self._device_info = {'active': 1, 'timer': timer}
+        self._device_info = {'active': 1, 'timer': timer, 'keypad': keyboard}
         return self._device_info
 
     def get_switch_device_info(self, server, device_id):
@@ -695,10 +717,11 @@ class SinopeClient(object):
         try:
             wattload = get_power_load(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_power_connected))).hex())
             timer = get_timer_length(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_power_timer))).hex())
+            keyboard = get_lock(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_lock))).hex())
         except OSError:
             raise PySinopeError("Cannot get switch info")
         # Prepare data
-        self._device_info = {'active': 1, 'wattage': wattload, 'timer': timer}
+        self._device_info = {'active': 1, 'wattage': wattload, 'timer': timer, 'keypad': keyboard}
         return self._device_info
 
     def set_brightness(self, server, device_id, brightness):
@@ -751,10 +774,10 @@ class SinopeClient(object):
             raise PySinopeError("Cannot set device setpoint temperature")
         return response
 
-    def set_timer(self, server, device_id, timer_length):
+    def set_timer(self, server, device_id, time):
         """Set device timer length."""
         try:
-            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_light_timer,set_timer_length(timer_length)))).hex())
+            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_light_timer,set_timer_length(time)))).hex())
         except OSError:
             raise PySinopeError("Cannot set device timer length")
         return response
@@ -775,6 +798,15 @@ class SinopeClient(object):
             raise PySinopeError("Cannot change lock device state")
         return response
 
+    def set_second_display(self, server, device_id, display):
+        """Set second display to: outdoor = 1, setpoint = 0"""
+        _LOGGER.debug("Parameter server=%s, id=%s, display=%s", server, device_id, display)
+        try:
+            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_display2,put_mode(display)))).hex())
+        except OSError:
+            raise PySinopeError("Cannot change second display state")
+        return response
+
     def set_daily_report(self, server):
         """Set report to send data to each devices once a day. Needed to get proper auto mode operation"""
         try:
@@ -789,8 +821,10 @@ class SinopeClient(object):
     def set_hourly_report(self, server, device_id, outside_temperature):
         """we need to send temperature once per hour if we want it to be displayed on second thermostat display line"""
         """We also need to send command to switch from setpoint temperature to outside temperature on second thermostat display"""
+        """Display setting is done once for each thermostat"""
         try:
-            reply = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_display2,put_mode(1)))).hex())
+            if device_id == "all": #broadcasted to all devices
+                device_id = "FFFFFFFF"
             result = get_result(bytearray(send_request(self, server, data_report_request(data_report_command,device_id,data_outdoor_temperature,set_temperature(outside_temperature)))).hex())
         except OSError:
             raise PySinopeError("Cannot send outside temperature report to each devices")
