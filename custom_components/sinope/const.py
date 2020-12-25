@@ -5,7 +5,7 @@ CONF_SERVER = 'server'
 CONF_SERVER_2 = 'server_2'
 CONF_MY_CITY = 'my_city'
 
-ATTR_OUTSIDE_TEMPERATURE = "outside_temperature"
+ATTR_OUTSIDE_TEMPERATURE = "temperature"
 ATTR_KEYPAD_LOCK = "lock"
 ATTR_TIMER = "time"
 ATTR_DISPLAY = "display"
