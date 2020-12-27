@@ -40,15 +40,15 @@ from .const import (
     CONF_MY_CITY,
     ATTR_OUTSIDE_TEMPERATURE,
     ATTR_KEYPAD_LOCK,
-    ATTR_TIMER,
+    ATTR_EVENT_TIMER,
     ATTR_DISPLAY,
     SUPPORT_OUTSIDE_TEMPERATURE,
     SUPPORT_KEYPAD_LOCK,
-    SUPPORT_TIMER,
+    SUPPORT_EVENT_TIMER,
     SUPPORT_SECOND_DISPLAY,
     SERVICE_SET_OUTSIDE_TEMPERATURE,
     SERVICE_SET_KEYPAD_LOCK,
-    SERVICE_SET_TIMER,
+    SERVICE_SET_EVENT_TIMER,
     SERVICE_SET_SECOND_DISPLAY,
 )
 
@@ -167,11 +167,14 @@ data_sunset = "21060000" #must be sent onece a day
 
 # thermostat data write
 data_early_start = "60080000"  #0=disabled, 1=enabled
+data_backlight = "0B090000" # variable  = intensity adjustable for thermostats
+# values, 0 = always on, 1 = variable idle/on in use, 2 = off idle/variabe in use, 3 = always variable
+data_backlight_idle = "09090000" # intensity when idle, 0 == off to 100 = always on
 
 # light and dimmer
 data_light_intensity = "00100000"  # 0 to 100, off to on, 101 = last level
 data_light_mode = "09100000"  # 1=manual, 2=auto, 3=random or away, 130= bypass auto
-data_light_timer = "000F0000"   # time in minutes the light will stay on 0=off, 1--255 = on
+data_light_event_timer = "000F0000"   # time in minutes the light event timer will stay on 0=off, 1--255 = on
 data_light_event = "010F0000"  #0= no event sent, 1=timer active, 2= event sent for turn_on or turn_off
 
 # Power control
@@ -180,7 +183,7 @@ data_power_mode = "09100000"  # 1=manual, 2=auto, 3=random or away, 130= bypass 
 data_power_connected = "000D0000" # actual load connected to the device
 data_power_load = "020D0000" # load used by the device
 data_power_event = "010F0000"  #0= no event sent, 1=timer active, 2= event sent for turn_on or turn_off
-data_power_timer = "000F0000" # time in minutes the power will stay on 0=off, 1--255 = on
+data_power_event_timer = "000F0000" # time in minutes the power event timer will stay on 0=off, 1--255 = on
 
 # general
 data_lock = "02090000" # 0 = unlock, 1 = lock, for keyboard device
@@ -371,6 +374,12 @@ def get_lock(data):
         tc2 = data[46:48]
         return int(float.fromhex(tc2))
 
+def set_light_state(state): # 0,1,2,3
+    return "01"+bytearray(struct.pack('<i', state)[:1]).hex()
+
+def set_light_idle(level): # 0 to 100
+    return "01"+bytearray(struct.pack('<i', level)[:1]).hex()
+
 def get_power_load(data): # get power in watt use by the device
     sequence = data[12:20]
     deviceID = data[26:34]
@@ -394,14 +403,14 @@ def set_light_event_on(num): #102 = light, 112 = dimmer
         b2 = "020202" # event on for dimmer
     return b0+b1+b2+b3
 
-def set_light_timer_on(num): #102 = light, 112 = dimmer
+def set_light_event_timer_on(num): #102 = light, 112 = dimmer
     b0 = "10"
     b1 = "00000000"
     b3 = "000000000000000000"
     if num == 102:
         b2 = "010100" #event on = timer start
     else:
-        b2 = "010101" # event off = timer start
+        b2 = "010101" # event off = timer start (dimmer)
     return b0+b1+b2+b3
 
 def set_light_event_off(num): #102 = light, 112 = dimmer
@@ -426,7 +435,7 @@ def set_switch_event_on():
     b2 = "0000000000000000000000000000"
     return b0+b1+b2
 
-def set_switch_timer_on():
+def set_switch_event_timer_on():
     b0 = "10"
     b1 = "0101"
     b2 = "0000000000000000000000000000"
@@ -444,10 +453,10 @@ def get_switch_event_state(data): #received event from devices,
     tc2 = data[46:50]
     return  tc2 #int(float.fromhex(tc2))
 
-def set_timer_length(num): # 0=desabled, 1 to 255 lenght on
+def set_event_timer_length(num): # 0=desabled, 1 to 255 lenght on
     return "01"+bytearray(struct.pack('<i', num)[:1]).hex()
 
-def get_timer_length(data): # 0=desabled, 1 to 255 lenght on
+def get_event_timer_length(data): # 0=desabled, 1 to 255 lenght on
     sequence = data[12:20]
     deviceID = data[26:34]
     status = data[20:22]
@@ -622,6 +631,7 @@ def data_write_request(*arg): # data = size+data to send (command,unit_id,data_a
     app_data_size = count_data(arg[2]+arg[3])
     size = count_data_frame(arg[0]+data_seq+data_type+data_res+arg[1]+app_data_size+arg[2]+arg[3])
     data_frame = head+size+arg[0]+data_seq+data_type+data_res+arg[1]+app_data_size+arg[2]+arg[3]
+#    _LOGGER.debug("Data write request %s", data_frame)
     read_crc = bytes.fromhex(crc_count(bytes.fromhex(data_frame)))
     return bytes.fromhex(data_frame)+read_crc
 
@@ -703,7 +713,7 @@ class SinopeClient(object):
         """Get information for this device."""
         # send requests
         try:
-            timer = get_timer_length(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_light_timer))).hex())
+            timer = get_event_timer_length(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_light_event_timer))).hex())
             keyboard = get_lock(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_lock))).hex())
         except OSError:
             raise PySinopeError("Cannot get light info")
@@ -716,7 +726,7 @@ class SinopeClient(object):
         # send requests
         try:
             wattload = get_power_load(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_power_connected))).hex())
-            timer = get_timer_length(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_power_timer))).hex())
+            timer = get_event_timer_length(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_power_event_timer))).hex())
             keyboard = get_lock(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_lock))).hex())
         except OSError:
             raise PySinopeError("Cannot get switch info")
@@ -774,12 +784,12 @@ class SinopeClient(object):
             raise PySinopeError("Cannot set device setpoint temperature")
         return response
 
-    def set_timer(self, server, device_id, time):
+    def set_event_timer(self, server, device_id, time):
         """Set device timer length."""
         try:
-            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_light_timer,set_timer_length(time)))).hex())
+            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_light_event_timer,set_event_timer_length(time)))).hex())
         except OSError:
-            raise PySinopeError("Cannot set device timer length")
+            raise PySinopeError("Cannot set device event timer length")
         return response
 
     def set_all_away(self, server, away):
@@ -807,6 +817,21 @@ class SinopeClient(object):
             raise PySinopeError("Cannot change second display state")
         return response
 
+    def set_backlight_state(self, server, device_id, state):
+        """set backlight state, 0 = full intensity, 1 = variable intensity when idle, 2 = off when idle, 3 = always variable intensity """
+        try:
+            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_backlight,set_light_state(state)))).hex())
+        except OSError:
+            raise PySinopeError("Cannot change backlight device state")
+        return response
+
+    def set_backlight_idle(self, server, device_id, level):
+        """Set backlight intensity when idle, 0 off to 100 full"""
+        try:
+            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_backlight_idle,set_light_idle(level)))).hex())
+        except OSError:
+            raise PySinopeError("Cannot change device backlight level")
+        return response
     def set_daily_report(self, server):
         """Set report to send data to each devices once a day. Needed to get proper auto mode operation"""
         try:
