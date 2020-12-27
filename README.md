@@ -150,6 +150,14 @@ Look like the GT125 use a different deviceID then the Neviweb portal. Once you h
 For power switch devices, RM3250RF and RM3200RF, you need to push on the top blue ligth (with the wifi logo) to get the deviceID.
 Each time you will add a new device to your GT125 you will need to run that device.py setup.
 
+## Custom services
+Automations require services to be able to send commande. Ex. light.turn_on. For the Sinopé devices connected via GT125 it is possible to use custom services to send specific information to devices or to change some devices parameters. Those custom services can be accessed via development tool/services or can be used in automation:
+
+- service.set_second_display, allow to change setting of the thermostats second display from setpoint temperature to outdoor temperature. This need to be sent only once to each devices.
+- service.set_outside_temperature, allow to send outdoor temperature to thermostat second display. This need to be sent at least once per hour or the thermostat will revert to setpoint temperature. You can use the special device «all» which is used to broadcast data to each devices, or you can send the data to only one device.
+- service.set_keypad_lock, allow to lock the keypad of the device. Work for thermostat, light and power control.
+- service.set_timer, this is used to set a timer to thelight devices so they will turn_off after a set delay each time you turn it on.
+
 ## Troubleshooting
 If you get a stack trace related to a Sinope component in your `home-assistant.log` file, you can file an issue in this repository.
 
