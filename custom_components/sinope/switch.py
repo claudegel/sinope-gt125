@@ -50,17 +50,17 @@ from homeassistant.helpers.typing import HomeAssistantType
 
 from .const import (
     DOMAIN,
-    ATTR_TIMER,
+    ATTR_EVENT_TIMER,
     ATTR_KEYPAD_LOCK,
-    SUPPORT_TIMER,
+    SUPPORT_EVENT_TIMER,
     SUPPORT_KEYPAD_LOCK,
-    SERVICE_SET_TIMER,
+    SERVICE_SET_EVENT_TIMER,
     SERVICE_SET_KEYPAD_LOCK,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
-SUPPORT_FLAGS = (SUPPORT_KEYPAD_LOCK, SUPPORT_TIMER)
+SUPPORT_FLAGS = (SUPPORT_KEYPAD_LOCK, SUPPORT_EVENT_TIMER)
 
 DEFAULT_NAME = 'sinope'
 DATA_DOMAIN = 'data_' + DOMAIN
@@ -85,10 +85,10 @@ SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
     }
 )
 
-SET_TIMER_SCHEMA = vol.Schema(
+SET_EVENT_TIMER_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_TIMER): vol.All(
+         vol.Required(ATTR_EVENT_TIMER): vol.All(
              vol.Coerce(int), vol.Range(min=0, max=255)
          ),
     }
@@ -157,14 +157,14 @@ def setup_platform(
                 power.schedule_update_ha_state(True)
                 break
 
-    def set_timer_service(service):
-        """ lock/unlock keypad device"""
+    def set_event_timer_service(service):
+        """ set event timer lenght"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for power in entities:
             if power.entity_id == entity_id:
-                value = {"id": power.unique_id, "time": service.data[ATTR_TIMER]}
-                power.set_timer(value)
+                value = {"id": power.unique_id, "time": service.data[ATTR_EVENT_TIMER]}
+                power.set_event_timer(value)
                 power.schedule_update_ha_state(True)
                 break
 
@@ -177,9 +177,9 @@ def setup_platform(
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_TIMER,
+        SERVICE_SET_EVENT_TIMER,
         set_timer_service,
-        schema=SET_TIMER_SCHEMA,
+        schema=SET_EVENT_TIMER_SCHEMA,
     )
 
 class SinopeSwitch(SwitchEntity):
@@ -198,7 +198,7 @@ class SinopeSwitch(SwitchEntity):
         self._alarm = None
         self._current_power_w = None
         self._rssi = None
-        self._timer = 0
+        self._event_timer = 0
         self._keypad = "Unlocked"
         _LOGGER.debug("Setting up %s: %s", self._name, self._id)
 
@@ -221,7 +221,7 @@ class SinopeSwitch(SwitchEntity):
         device_info = self._client.get_switch_device_info(self._server, self._id)
         self._wattage = device_info["wattage"] if \
                 device_info["wattage"] is not None else 0.0
-        self._timer = device_info["timer"] if \
+        self._event_timer = device_info["timer"] if \
                 device_info["timer"] is not None else 0
         self._keypad = "Unlocked" if device_info["keypad"] == 0 else "Locked"
         return
@@ -282,9 +282,9 @@ class SinopeSwitch(SwitchEntity):
         return self._keypad
       
     @property
-    def timer (self):
-        """Return the timer state of the device"""
-        return self._timer
+    def event_timer (self):
+        """Return the event timer state of the device"""
+        return self._event_timer
 
     @property
     def device_state_attributes(self):
@@ -293,7 +293,7 @@ class SinopeSwitch(SwitchEntity):
                 'operation_mode': self.operation_mode,
                 'rssi': self._rssi,
                 'wattage': self._wattage,
-                'timer': self._timer,
+                'event timer': self._event_timer,
                 'keypad': self._keypad,
                 'server': self._server,
                 'id': self._id,
@@ -332,17 +332,17 @@ class SinopeSwitch(SwitchEntity):
             self._server, entity, lock_commande)
         self._keypad = lock_name
 
-    def set_timer(self, value):
-        """Set timer lenght, 0 = off, 1 to 255 = lenght"""
+    def set_event_timer(self, value):
+        """Set event timer lenght, 0 = off, 1 to 255 = lenght"""
         time = value["time"]
         entity = value["id"]
         if time == 0:
             time_name = "off"
         else:
             time_name = "on"
-        self._client.set_timer(
+        self._client.set_event_timer(
             self._server, entity, time)
-        self._timer = time_name
+        self._event_timer = time_name
 
     def to_hass_operation_mode(self, mode):
         """Translate Sinope operation modes to hass operation modes."""
