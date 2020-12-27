@@ -14,7 +14,7 @@ ATTR_STATE = "state"
 
 SERVICE_SET_OUTSIDE_TEMPERATURE = "set_outside_temperature"
 SERVICE_SET_KEYPAD_LOCK = "set_keypad_lock"
-SERVICE_SET_EVENT_TIMER = "set_timer"
+SERVICE_SET_EVENT_TIMER = "set_event_timer"
 SERVICE_SET_SECOND_DISPLAY = "set_second_display"
 SERVICE_SET_BACKLIGHT_IDLE = "set_backlight_idle"
 SERVICE_SET_BACKLIGHT_STATE = "set_backlight_state"
