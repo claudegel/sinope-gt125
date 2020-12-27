@@ -18,8 +18,8 @@ set_keypad_lock:
       description: lock status to set lock = locked, unlock = unlocked.
       example: "lock"
 
-set_timer:
-  description: Set timer lenght form 0 = off to 255 minutes. Works on light, dimmer and switch
+set_event_timer:
+  description: Set event timer lenght form 0 = off to 255 minutes. Works on light, dimmer and switch
   fields:
     entity_id:
       description: Name(s) of device to set the timer.
@@ -37,3 +37,23 @@ set_second_display:
     display:
       description: out = outside temperature display, set = setpoint display
       example: "out"
+
+set_backlight_state:
+  description: set backlight state, 0 = full intensity, 1 = variable intensity when idle, 2 = off when idle, 3 = always variable intensity.
+  fields:
+    entity_id:
+      description: Name(s) of device to set the second display.
+      example: "climate.sinope_climate_office"
+    state:
+      description: 0 = full intensity, 1 = variable when idle, 2 = off, 3 always variable, active or idle.
+      example: 3
+
+set_backlight_idle:
+  description: Set backlight intensity when idle, 0 = off, 1 to 100 intensity
+  fields:
+    entity_id:
+      description: Name(s) of device to set the second display.
+      example: "climate.sinope_climate_office"
+    level:
+      description: 0 = off, 1 to 100 intensity.
+      example: 50
