@@ -151,6 +151,7 @@ SET_BACKLIGHT_STATE_SCHEMA = vol.Schema(
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_STATE): vol.All(
              vol.Coerce(int), vol.Range(min=0, max=3)
+         ),
     }
 )
 
@@ -159,6 +160,7 @@ SET_BACKLIGHT_IDLE_SCHEMA = vol.Schema(
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_LEVEL): vol.All(
              vol.Coerce(int), vol.Range(min=0, max=100)
+         ),
     }
 )
 
