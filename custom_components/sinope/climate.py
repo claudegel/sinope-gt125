@@ -473,10 +473,10 @@ class SinopeThermostat(ClimateEntity):
         lock = value["lock"]
         entity = value["id"]
         if lock == "lock":
-            lock_commande = 0
+            lock_commande = 1
             lock_name = "Locked"
         else:
-            lock_commande = 1
+            lock_commande = 0
             lock_name = "Unlocked"
         self._client.set_keyboard_lock(
             self._server, entity, lock_commande)
