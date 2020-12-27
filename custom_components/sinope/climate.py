@@ -74,12 +74,16 @@ from .const import (
     ATTR_OUTSIDE_TEMPERATURE,
     ATTR_KEYPAD_LOCK,
     ATTR_DISPLAY,
+    ATTR_LEVEL,
+    ATTR_STATE,
     SUPPORT_OUTSIDE_TEMPERATURE,
     SUPPORT_KEYPAD_LOCK,
     SUPPORT_SECOND_DISPLAY,
     SERVICE_SET_OUTSIDE_TEMPERATURE,
     SERVICE_SET_KEYPAD_LOCK,
     SERVICE_SET_SECOND_DISPLAY,
+    SERVICE_SET_BACKLIGHT_IDLE,
+    SERVICE_SET_BACKLIGHT_STATE,
     PRESET_BYPASS,
 )
 
@@ -139,6 +143,22 @@ SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_DISPLAY): cv.string,
+    }
+)
+
+SET_BACKLIGHT_STATE_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_STATE): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=3)
+    }
+)
+
+SET_BACKLIGHT_IDLE_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_LEVEL): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=100)
     }
 )
 
@@ -227,6 +247,28 @@ def setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_backlight_state_service(service):
+        """Set to outside or setpoint temperature display"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "state": service.data[ATTR_STATE]}
+                thermostat.set_backlight_state(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_backlight_idle_service(service):
+        """Set to outside or setpoint temperature display"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "level": service.data[ATTR_LEVEL]}
+                thermostat.set_backlight_idle(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_OUTSIDE_TEMPERATURE,
@@ -246,6 +288,20 @@ def setup_platform(
         SERVICE_SET_SECOND_DISPLAY,
         set_second_display_service,
         schema=SET_SECOND_DISPLAY_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_BACKLIGHT_IDLE,
+        set_backlight_idle_service,
+        schema=SET_BACKLIGHT_IDLE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_BACKLIGHT_STATE,
+        set_backlight_state_service,
+        schema=SET_BACKLIGHT_STATE_SCHEMA,
     )
 
 class SinopeThermostat(ClimateEntity):
@@ -274,6 +330,8 @@ class SinopeThermostat(ClimateEntity):
         self._outside_temperature = None
         self._keypad = "Unlocked"
         self._second_display = None
+        self._backlight_idle = None
+        self._backlight_state = None
         _LOGGER.debug("Setting up %s: %s", self._name, self._id)
 
     def update(self):
@@ -344,6 +402,7 @@ class SinopeThermostat(ClimateEntity):
         """Return the state attributes."""
         return {'alarm': self._alarm,
                 'keypad': self._keypad,
+                'backlight state': self._backlight_state,
                 'display2': self._second_display,
                 'heat_level': self._heat_level,
                 'rssi': self._rssi,
@@ -386,6 +445,16 @@ class SinopeThermostat(ClimateEntity):
     def second_display(self):
         """Return the second display state, outside or setpoint"""
         return self._second_display
+
+    @property
+    def backlight_idle(self):
+        """Return the state of keypad, Unlocked or Locked."""
+        return self._backlight_idle
+
+    @property
+    def backlight_state(self):
+        """Return the second display state, outside or setpoint"""
+        return self._backlight_state
 
     @property
     def hvac_mode(self):
@@ -495,6 +564,34 @@ class SinopeThermostat(ClimateEntity):
         self._client.set_second_display(
             self._server, entity, display_commande)
         self._second_display = display_name
+
+    def set_backlight_idle(self, value):
+        """Set thermostat second display between outside and setpoint temperature"""
+        level = value["level"]
+        entity = value["id"]
+        if level == 0:
+            idle_name = "Off"
+        else:
+            idle_name = "On"
+        self._client.set_backlight_idle(
+            self._server, entity, level)
+        self._backlight_idle = idle_name
+
+    def set_backlight_state(self, value):
+        """Set thermostat second display between outside and setpoint temperature"""
+        state = value["state"]
+        entity = value["id"]
+        if state == 0:
+            state_name = "Full on"
+        elif state == 1:
+            state_name = "Variable idle"
+        elif state == 2:
+            state_name = "Off idle"
+        else:
+            state_name = "Always variable"
+        self._client.set_backlight_idle(
+            self._server, entity, state)
+        self._backlight_state = state_name
 
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
