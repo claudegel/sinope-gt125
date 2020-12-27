@@ -193,7 +193,7 @@ def setup_platform(
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_EVENT_TIMER,
-        set_timer_service,
+        set_event_timer_service,
         schema=SET_EVENT_TIMER_SCHEMA,
     )
 
