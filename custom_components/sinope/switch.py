@@ -56,6 +56,7 @@ from .const import (
     SUPPORT_KEYPAD_LOCK,
     SERVICE_SET_EVENT_TIMER,
     SERVICE_SET_KEYPAD_LOCK,
+    SERVICE_SET_BASIC_DATA,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -91,6 +92,12 @@ SET_EVENT_TIMER_SCHEMA = vol.Schema(
          vol.Required(ATTR_EVENT_TIMER): vol.All(
              vol.Coerce(int), vol.Range(min=0, max=255)
          ),
+    }
+)
+
+SET_BASIC_DATA_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     }
 )
 
@@ -168,6 +175,17 @@ def setup_platform(
                 power.schedule_update_ha_state(True)
                 break
 
+    def set_basic_data_service(service):
+        """Set to outside or setpoint temperature display"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for power in entities:
+            if power.entity_id == entity_id:
+                value = {"id": power.unique_id}
+                power.set_basic_data(value)
+                power.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_KEYPAD_LOCK,
@@ -180,6 +198,13 @@ def setup_platform(
         SERVICE_SET_EVENT_TIMER,
         set_event_timer_service,
         schema=SET_EVENT_TIMER_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_BASIC_DATA,
+        set_basic_data_service,
+        schema=SET_BASIC_DATA_SCHEMA,
     )
 
 class SinopeSwitch(SwitchEntity):
@@ -343,6 +368,11 @@ class SinopeSwitch(SwitchEntity):
         self._client.set_event_timer(
             self._server, entity, time)
         self._event_timer = time_name
+
+    def set_basic_data(self, value):
+        """Send command to set new outside temperature."""
+        entity = value["id"]
+        self._client.set_daily_report(self, self._server)
 
     def to_hass_operation_mode(self, mode):
         """Translate Sinope operation modes to hass operation modes."""
