@@ -58,10 +58,17 @@ from .const import (
     DOMAIN,
     ATTR_EVENT_TIMER,
     ATTR_KEYPAD_LOCK,
+    ATTR_STATE,
+    ATTR_INTENSITY,
+    ATTR_RED,
+    ATTR_GREEN,
+    ATTR_BLUE,
     SUPPORT_EVENT_TIMER,
     SUPPORT_KEYPAD_LOCK,
     SERVICE_SET_EVENT_TIMER,
     SERVICE_SET_KEYPAD_LOCK,
+    SERVICE_SET_LED_INDICATOR,
+    SERVICE_SET_BASIC_DATA,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -100,6 +107,33 @@ SET_EVENT_TIMER_SCHEMA = vol.Schema(
          vol.Required(ATTR_EVENT_TIMER): vol.All(
              vol.Coerce(int), vol.Range(min=0, max=255)
          ),
+    }
+)
+
+SET_LED_INDICATOR_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_STATE): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=1)
+         ),
+         vol.Required(ATTR_INTENSITY): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=100)
+         ),
+         vol.Required(ATTR_RED): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=255)
+         ),
+         vol.Required(ATTR_GREEN): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=255)
+         ),
+         vol.Required(ATTR_BLUE): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=255)
+         ),
+    }
+)
+
+SET_BASIC_DATA_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     }
 )
 
@@ -183,6 +217,28 @@ def setup_platform(
                 light.schedule_update_ha_state(True)
                 break
 
+    def set_led_indicator_service(service):
+        """ lock/unlock keypad device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {"id": light.unique_id, "state": service.data[ATTR_STATE], "intensity": service.data[ATTR_INTENSITY], "red": service.data[ATTR_RED], "green": service.data[ATTR_GREEN], "blue": service.data[ATTR_BLUE]}
+                light.set_led_indicator(value)
+                light.schedule_update_ha_state(True)
+                break
+
+    def set_basic_data_service(service):
+        """Set to outside or setpoint temperature display"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {"id": light.unique_id}
+                light.set_basic_data(value)
+                light.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_KEYPAD_LOCK,
@@ -195,6 +251,20 @@ def setup_platform(
         SERVICE_SET_EVENT_TIMER,
         set_event_timer_service,
         schema=SET_EVENT_TIMER_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_LED_INDICATOR,
+        set_led_indicator_service,
+        schema=SET_LED_INDICATOR_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_BASIC_DATA,
+        set_basic_data_service,
+        schema=SET_BASIC_DATA_SCHEMA,
     )
 
 def brightness_to_percentage(brightness):
@@ -222,6 +292,8 @@ class SinopeLight(LightEntity):
         self._rssi = None
         self._event_timer = 0
         self._keypad = "Unlocked"
+        self._led_on = None
+        self._led_off = None
         self._is_dimmable = int(device_type) in DEVICE_TYPE_DIMMER
         _LOGGER.debug("Setting up %s: %s", self._name, self._id)
         
@@ -240,9 +312,11 @@ class SinopeLight(LightEntity):
         self._alarm = device_data["alarm"]
         self._rssi = device_data["rssi"]
         device_info = self._client.get_light_device_info(self._server, self._id)
-        self._event_timer = device_info["timer"] if \
-            device_info["timer"] is not None else 0
-        self._keypad = "Unlocked" if device_info["keypad"] == 0 else "Locked"
+        self._event_timer = device_info[0]["timer"] if \
+            device_info[0]["timer"] is not None else 0
+        self._keypad = "Unlocked" if device_info[0]["keypad"] == 0 else "Locked"
+        self._led_on = device_info[1]["intensity_on"]+","+device_info[1]["red_on"]+","+device_info[1]["green_on"]+","+device_info[1]["blue_on"]
+        self._led_off = device_info[2]["intensity_off"]+","+device_info[2]["red_off"]+","+device_info[2]["green_off"]+","+device_info[2]["blue_off"]
         return
 #        _LOGGER.warning("Cannot update %s: %s", self._name, device_info)
         
@@ -315,6 +389,8 @@ class SinopeLight(LightEntity):
                      'wattage_override': self._wattage_override,
                      'keypad': self._keypad,
                      'event_timer': self._event_timer,
+                     'led_on': self._led_on,
+                     'led_off': self._led_off,
                      'server': self._server,
                      'id': self._id,
                      })
@@ -369,6 +445,26 @@ class SinopeLight(LightEntity):
         self._client.set_event_timer(
             self._server, entity, time)
         self._event_timer = time_name
+
+    def set_led_indicator(self, value):
+        """Set led indicator color and intensity, base on RGB red, green, blue color (0-255) and intensity from 0 to 100"""
+        state = value["state"]
+        entity = value["id"]
+        intensity = value["intensity"]
+        red = value["red"]
+        green = value["green"]
+        blue = value["blue"]
+        self._client.set_led_indicator(
+            self._server, entity, state, intensity, red, green, blue)
+        if state == 0:
+            self._led_off = str(value["intensity"])+","+str(value["red"])+","+str(value["green"])+","+str(value["blue"])
+        else:
+            self._led_on = str(value["intensity"])+","+str(value["red"])+","+str(value["green"])+","+str(value["blue"])
+
+    def set_basic_data(self, value):
+        """Send command to set new outside temperature."""
+        entity = value["id"]
+        self._client.set_daily_report(self, self._server)
 
     def to_hass_operation_mode(self, mode):
         """Translate sinope operation modes to hass operation modes."""
