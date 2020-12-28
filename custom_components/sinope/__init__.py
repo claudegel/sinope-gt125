@@ -176,6 +176,8 @@ data_light_intensity = "00100000"  # 0 to 100, off to on, 101 = last level
 data_light_mode = "09100000"  # 1=manual, 2=auto, 3=random or away, 130= bypass auto
 data_light_event_timer = "000F0000"   # time in minutes the light event timer will stay on 0=off, 1--255 = on
 data_light_event = "010F0000"  #0= no event sent, 1=timer active, 2= event sent for turn_on or turn_off
+data_light_indicator_on = "10098001" # when light is on, 4 bytes: 0=intensity, 1=color red 0-255, 2=green 0-255, 3=blue 0-255
+data_light_indicator_off = "10098000" # when light is off, 4 bytes: 0=intensity, 1=color red 0-255, 2=green 0-255, 3=blue 0-255
 
 # Power control
 data_power_intensity = "00100000"  # 0 to 100, off to on
@@ -360,6 +362,9 @@ def get_data_push(data): #will be used to send data pushed by GT125 when light i
 #    return int(float.fromhex(tc2))
     return None
 
+def set_led_color(intensity, red, green, blue): #intensity (0-100), red, green. blue = RGB color (0-255)
+    return "04"+bytearray(struct.pack('<i', intensity)[:1]).hex()+bytearray(struct.pack('<i', red)[:1]).hex()+bytearray(struct.pack('<i', green)[:1]).hex()+bytearray(struct.pack('<i', blue)[:1]).hex()
+
 def set_lock(lock):
     return "01"+bytearray(struct.pack('<i', lock)[:1]).hex()
 
@@ -379,6 +384,38 @@ def set_light_state(state): # 0,1,2,3
 
 def set_light_idle(level): # 0 to 100
     return "01"+bytearray(struct.pack('<i', level)[:1]).hex()
+
+def set_indicator(level,red,green,blue): #use for led indicator when on or off
+    b0 = bytearray(struct.pack('<i', level)[:1]).hex()
+    b1 = bytearray(struct.pack('<i', red)[:1]).hex()
+    b2 = bytearray(struct.pack('<i', green)[:1]).hex()
+    b3 = bytearray(struct.pack('<i', blue)[:1]).hex()
+    return b0+b1+b2+b3
+
+def get_led(state,data):
+    sequence = data[12:20]
+    deviceID = data[26:34]
+    status = data[20:22]
+    if status != "0a":
+        _LOGGER.debug("Status code: %s (Wrong answer for: %s) Data:(%s)", status, deviceID, data)
+        return None # device didn't answer, wrong device
+    else:
+        tc0 = data[46:48]
+        tc1 = data[48:50]
+        tc2 = data[50:52]
+        tc3 = data[52:54]
+    my_led = {}
+    if state == 1:
+        my_led['intensity_on'] = str(int(float.fromhex(tc0)))
+        my_led['red_on'] = str(int(float.fromhex(tc1)))
+        my_led['green_on'] = str(int(float.fromhex(tc2)))
+        my_led['blue_on'] = str(int(float.fromhex(tc3)))
+    else:
+        my_led['intensity_off'] = str(int(float.fromhex(tc0)))
+        my_led['red_off'] = str(int(float.fromhex(tc1)))
+        my_led['green_off'] = str(int(float.fromhex(tc2)))
+        my_led['blue_off'] = str(int(float.fromhex(tc3)))
+    return  my_led
 
 def get_power_load(data): # get power in watt use by the device
     sequence = data[12:20]
@@ -703,10 +740,13 @@ class SinopeClient(object):
             wattload = get_power_load(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_load))).hex())
             wattoveride = get_power_load(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_power_connected))).hex())
             keyboard = get_lock(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_lock))).hex())
+            display2 = get_mode(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_display2))).hex())
+#            backlight_state = get_mode(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_backlight))).hex())
+            backlight_idle = get_mode(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_backlight_idle))).hex())
         except OSError:
             raise PySinopeError("Cannot get climate info")
         # Prepare data
-        self._device_info = {'active': 1, 'tempMax': tempmax, 'tempMin': tempmin, 'wattage': wattload, 'wattageOverride': wattoveride, 'keypad': keyboard}
+        self._device_info = {'active': 1, 'tempMax': tempmax, 'tempMin': tempmin, 'wattage': wattload, 'wattageOverride': wattoveride, 'keypad': keyboard, 'display2': display2, 'backlight_state': None, 'backlight_idle': backlight_idle}
         return self._device_info
 
     def get_light_device_info(self, server, device_id):
@@ -715,11 +755,16 @@ class SinopeClient(object):
         try:
             timer = get_event_timer_length(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_light_event_timer))).hex())
             keyboard = get_lock(bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_lock))).hex())
+            led_on = get_led(1,bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_light_indicator_on))).hex())
+            led_off = get_led(0,bytearray(send_request(self, server, data_read_request(data_read_command,device_id,data_light_indicator_off))).hex())
         except OSError:
             raise PySinopeError("Cannot get light info")
         # Prepare data
-        self._device_info = {'active': 1, 'timer': timer, 'keypad': keyboard}
-        return self._device_info
+        result = []
+        result.append({'active': 1, 'timer': timer, 'keypad': keyboard})
+        result.append(led_on)
+        result.append(led_off)
+        return result
 
     def get_switch_device_info(self, server, device_id):
         """Get information for this device."""
@@ -740,6 +785,18 @@ class SinopeClient(object):
             response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_light_intensity,set_intensity(brightness)))).hex())
         except OSError:
             raise PySinopeError("Cannot set device brightness")
+        return response
+
+    def set_light_indicator(self, state, level, red, green, blue):
+        """Set device indicator led color and intensity."""
+        if state == 0:
+            data_indicator = data_light_indicator_off
+        else:
+            data_indicator = data_light_indicator_on
+        try:
+            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_indicator,set_light_indicator(state,red,green,blue)))).hex())
+        except OSError:
+            raise PySinopeError("Cannot set device led indicator intensity and color")
         return response
 
     def send_time(self, server, device_id):
@@ -832,6 +889,19 @@ class SinopeClient(object):
         except OSError:
             raise PySinopeError("Cannot change device backlight level")
         return response
+
+    def set_led_indicator(self, server, device_id, state, intensity, red, green, blue):
+        """Set backlight intensity when idle, 0 off to 100 full"""
+        if state == 0:
+            data_light = data_light_indicator_off
+        else:
+            data_light = data_light_indicator_on
+        try:
+            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_light,set_led_color(intensity, red, green, blue)))).hex())
+        except OSError:
+            raise PySinopeError("Cannot change device backlight level")
+        return response
+
     def set_daily_report(self, server):
         """Set report to send data to each devices once a day. Needed to get proper auto mode operation"""
         try:
