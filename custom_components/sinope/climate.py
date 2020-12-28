@@ -84,6 +84,7 @@ from .const import (
     SERVICE_SET_SECOND_DISPLAY,
     SERVICE_SET_BACKLIGHT_IDLE,
     SERVICE_SET_BACKLIGHT_STATE,
+    SERVICE_SET_BASIC_DATA,
     PRESET_BYPASS,
 )
 
@@ -161,6 +162,12 @@ SET_BACKLIGHT_IDLE_SCHEMA = vol.Schema(
          vol.Required(ATTR_LEVEL): vol.All(
              vol.Coerce(int), vol.Range(min=0, max=100)
          ),
+    }
+)
+
+SET_BASIC_DATA_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     }
 )
 
@@ -271,6 +278,17 @@ def setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_basic_data_service(service):
+        """Set to outside or setpoint temperature display"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id}
+                thermostat.set_basic_data(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_OUTSIDE_TEMPERATURE,
@@ -304,6 +322,13 @@ def setup_platform(
         SERVICE_SET_BACKLIGHT_STATE,
         set_backlight_state_service,
         schema=SET_BACKLIGHT_STATE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_BASIC_DATA,
+        set_basic_data_service,
+        schema=SET_BASIC_DATA_SCHEMA,
     )
 
 class SinopeThermostat(ClimateEntity):
@@ -365,6 +390,19 @@ class SinopeThermostat(ClimateEntity):
         self._min_temp = device_info["tempMin"]
         self._max_temp = device_info["tempMax"]
         self._keypad = "Unlocked" if device_info["keypad"] == 0 else "Locked"
+        if device_info["display2"] is not None:
+            self._second_display = "Setpoint" if device_info["display2"] == 0 else "Outside"
+        if device_info["backlight_state"] == 0:
+            self._backlight_state = "Full On"
+        elif device_info["backlight_state"] == 1:
+            self._backlight_state = "Variable Idle"
+        elif device_info["backlight_state"] == 2:
+            self._backlight_state = "Off Idle"
+        elif device_info["backlight_state"] == 3:
+            self._backlight_state = "Always Variable"
+        else:
+            self._backlight_state = "Unknown"
+        self._backlight_idle = "Off" if device_info["backlight_idle"] == 0 else "On"
         return
 
     @property
@@ -405,6 +443,7 @@ class SinopeThermostat(ClimateEntity):
         return {'alarm': self._alarm,
                 'keypad': self._keypad,
                 'backlight state': self._backlight_state,
+                'backlight_idle': self._backlight_idle,
                 'display2': self._second_display,
                 'heat_level': self._heat_level,
                 'rssi': self._rssi,
@@ -568,7 +607,7 @@ class SinopeThermostat(ClimateEntity):
         self._second_display = display_name
 
     def set_backlight_idle(self, value):
-        """Set thermostat second display between outside and setpoint temperature"""
+        """Set thermostat back light to on/off"""
         level = value["level"]
         entity = value["id"]
         if level == 0:
@@ -580,7 +619,7 @@ class SinopeThermostat(ClimateEntity):
         self._backlight_idle = idle_name
 
     def set_backlight_state(self, value):
-        """Set thermostat second display between outside and setpoint temperature"""
+        """Set thermostat back light state"""
         state = value["state"]
         entity = value["id"]
         if state == 0:
@@ -590,10 +629,15 @@ class SinopeThermostat(ClimateEntity):
         elif state == 2:
             state_name = "Off idle"
         else:
-            state_name = "Always variable"
+            state_name = "Always Variable"
         self._client.set_backlight_idle(
             self._server, entity, state)
         self._backlight_state = state_name
+
+    def set_basic_data(self, value):
+        """Send command to set new outside temperature."""
+        entity = value["id"]
+        self._client.set_daily_report(self, self._server)
 
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
