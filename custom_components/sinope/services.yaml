@@ -9,7 +9,7 @@ set_outside_temperature:
       example: 24.5
 
 set_keypad_lock:
-  description: Lock or unlock device keypad. work on climate, light, dimmer and switch
+  description: Lock or unlock device keypad. work on climate, light, dimmer and switch.
   fields:
     entity_id:
       description: Name(s) of device to lock/unlock the keypad.
@@ -19,7 +19,7 @@ set_keypad_lock:
       example: "lock"
 
 set_event_timer:
-  description: Set event timer lenght form 0 = off to 255 minutes. Works on light, dimmer and switch
+  description: Set event timer lenght form 0 = off to 255 minutes. Works on light, dimmer and switch.
   fields:
     entity_id:
       description: Name(s) of device to set the timer.
@@ -29,7 +29,7 @@ set_event_timer:
       example: 30
 
 set_second_display:
-  description: Set the second thermostat display to show setpoint or outside temperature
+  description: Set the second thermostat display to show setpoint or outside temperature.
   fields:
     entity_id:
       description: Name(s) of device to set the second display.
@@ -49,7 +49,7 @@ set_backlight_state:
       example: 3
 
 set_backlight_idle:
-  description: Set backlight intensity when idle, 0 = off, 1 to 100 intensity
+  description: Set backlight intensity when idle, 0 = off, 1 to 100 intensity.
   fields:
     entity_id:
       description: Name(s) of device to set the second display.
@@ -57,3 +57,32 @@ set_backlight_idle:
     level:
       description: 0 = off, 1 to 100 intensity.
       example: 50
+
+set_led_indicator:
+  description: Set led indicator intensity an color for each light state, on/off.
+  fields:
+    entity_id:
+      description: Name(s) of device to set the second display.
+      example: "light.sinope_light_office"
+    state:
+      description: 0 = when light is «off», 1 = when light is «on»
+      example: 1
+    intensity:
+      description: 0 = off, 1 to 100 intensity.
+      example: 50
+    red:
+      description: 0 to 255 RGB reb color indice
+      example: 25
+    green:
+      description: 0 to 255 RGB green color indice
+      example: 25
+    blue:
+      description: 0 to 255 RGB blue color indice
+      example: 255
+
+set_basic_data:
+  description: Send date, time, sunset and sunrise to each device once a day.
+  fields:
+    entity_id:
+      description: Name(s) of device to send the daily parameters.
+      example: "light.sinope_light_office"
