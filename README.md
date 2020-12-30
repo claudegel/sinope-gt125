@@ -153,12 +153,12 @@ Each time you will add a new device to your GT125 you will need to run that devi
 ## Custom services
 Automations require services to be able to send commande. Ex. light.turn_on. For the Sinopé devices connected via GT125 it is possible to use custom services to send specific information to devices or to change some devices parameters. Those custom services can be accessed via development tool/services or can be used in automation:
 
-- service.set_second_display, allow to change setting of the thermostats second display from setpoint temperature to outdoor temperature. This need to be sent only once to each devices.
-- service.set_outside_temperature, allow to send outdoor temperature to thermostat second display. This need to be sent at least once per hour or the thermostat will revert to setpoint temperature. You can use the special device «all» which is used to broadcast data to each devices, or you can send the data to only one device.
-- service.set_keypad_lock, allow to lock the keypad of the device. Work for thermostat, light and power control.
-- service.set_event_timer, this is used to set a timer to the light and switch devices svents for them to send notice when they are activated.
-- service.set_led_indicator, this allow to change led indicator color and intensity on light devices for on and off state. you can send any color in the RGB list via the three color parameters red, green and blue.
-- service set_basic_data, this service send date, time, sunset and sunrize data to each devices for accurate operations. It need to be sent once a day for proper operation via automation. You need to specify one devices only and all devices will be updated.
+- sinope.set_second_display, allow to change setting of the thermostats second display from setpoint temperature to outdoor temperature. This need to be sent only once to each devices.
+- sinope.set_outside_temperature, allow to send outdoor temperature to thermostat second display. This need to be sent at least once per hour or the thermostat will revert to setpoint temperature. You can use the special device «all» which is used to broadcast data to each devices at once, or you can send the data to only one device.
+- sinope.set_keypad_lock, allow to lock the keypad of the device. Work for thermostat, light and power controler.
+- sinope.set_event_timer, this is used to set a timer to the light and switch devices events for them to send notice when they are activated.
+- sinope.set_led_indicator, this allow to change led indicator color and intensity on light devices for «on» and «off» state. you can send any color in the RGB list via the three color parameters red, green and blue and you can set intensity of the led indicator.
+- sinope.set_basic_data, this service send date, time, sunset and sunrize data to each devices for accurate operations. It need to be sent once a day for proper operation via automation. You need to specify one devices only and all devices will be updated.
 
 ## Troubleshooting
 If you get a stack trace related to a Sinope component in your `home-assistant.log` file, you can file an issue in this repository.
