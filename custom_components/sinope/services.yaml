@@ -1,9 +1,88 @@
-set_ouside_temperature:
+set_outside_temperature:
   description: Send outside temperature to thermostats.
   fields:
     entity_id:
       description: Name(s) of thermostats that will receive outside temperature.
       example: "climate.sinope_climate_office"
-    outside_temperature:
+    temperature:
       description: outside temperature that will be sent to thermostat in oC or oF depending on your setup.
-      example: "24"
+      example: 24.5
+
+set_keypad_lock:
+  description: Lock or unlock device keypad. work on climate, light, dimmer and switch.
+  fields:
+    entity_id:
+      description: Name(s) of device to lock/unlock the keypad.
+      example: "climate.sinope_climate_office"
+    lock:
+      description: lock status to set lock = locked, unlock = unlocked.
+      example: "lock"
+
+set_event_timer:
+  description: Set event timer lenght form 0 = off to 255 minutes. Works on light, dimmer and switch.
+  fields:
+    entity_id:
+      description: Name(s) of device to set the timer.
+      example: "light.sinope_light_office"
+    time:
+      description: time duration to set the device timer, 0 = off, 1 to 255 minutes
+      example: 30
+
+set_second_display:
+  description: Set the second thermostat display to show setpoint or outside temperature.
+  fields:
+    entity_id:
+      description: Name(s) of device to set the second display.
+      example: "climate.sinope_climate_office"
+    display:
+      description: out = outside temperature display, set = setpoint display
+      example: "out"
+
+set_backlight_state:
+  description: set backlight state, 0 = full intensity, 1 = variable intensity when idle, 2 = off when idle, 3 = always variable intensity.
+  fields:
+    entity_id:
+      description: Name(s) of device to set the second display.
+      example: "climate.sinope_climate_office"
+    state:
+      description: 0 = full intensity, 1 = variable when idle, 2 = off, 3 always variable, active or idle.
+      example: 3
+
+set_backlight_idle:
+  description: Set backlight intensity when idle, 0 = off, 1 to 100 intensity.
+  fields:
+    entity_id:
+      description: Name(s) of device to set the second display.
+      example: "climate.sinope_climate_office"
+    level:
+      description: 0 = off, 1 to 100 intensity.
+      example: 50
+
+set_led_indicator:
+  description: Set led indicator intensity an color for each light state, on/off.
+  fields:
+    entity_id:
+      description: Name(s) of device to set the second display.
+      example: "light.sinope_light_office"
+    state:
+      description: 0 = when light is «off», 1 = when light is «on»
+      example: 1
+    intensity:
+      description: 0 = off, 1 to 100 intensity.
+      example: 50
+    red:
+      description: 0 to 255 RGB reb color indice
+      example: 25
+    green:
+      description: 0 to 255 RGB green color indice
+      example: 25
+    blue:
+      description: 0 to 255 RGB blue color indice
+      example: 255
+
+set_basic_data:
+  description: Send date, time, sunset and sunrise to each device once a day.
+  fields:
+    entity_id:
+      description: Name(s) of device to send the daily parameters.
+      example: "light.sinope_light_office"

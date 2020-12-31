@@ -4,6 +4,7 @@ family 120 = load controller device, RM3250RF and RM3200RF
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
+import asyncio
 import json
 import logging
 import os
@@ -12,15 +13,55 @@ import voluptuous as vol
 import time
 
 import custom_components.sinope as sinope
-from . import (SCAN_INTERVAL, CONFDIR)
-from homeassistant.components.switch import (SwitchEntity, 
-    ATTR_TODAY_ENERGY_KWH, ATTR_CURRENT_POWER_W)
+from . import (
+    SCAN_INTERVAL,
+    CONFDIR,
+)
+
+from homeassistant.components.switch import (
+    SwitchEntity,
+    ATTR_TODAY_ENERGY_KWH,
+    ATTR_CURRENT_POWER_W,
+)
+
+from homeassistant.helpers import (
+    config_validation as cv,
+    discovery,
+    entity_platform,
+    service,
+    entity_component,
+    entity_registry,
+    device_registry,
+)
+
+from homeassistant.core import (
+    ServiceCall,
+    callback,
+)
+
+from homeassistant.const import (
+    ATTR_ENTITY_ID,
+)
+
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.typing import HomeAssistantType
+
 from .const import (
     DOMAIN,
+    ATTR_EVENT_TIMER,
+    ATTR_KEYPAD_LOCK,
+    SUPPORT_EVENT_TIMER,
+    SUPPORT_KEYPAD_LOCK,
+    SERVICE_SET_EVENT_TIMER,
+    SERVICE_SET_KEYPAD_LOCK,
+    SERVICE_SET_BASIC_DATA,
 )
+
 _LOGGER = logging.getLogger(__name__)
+
+SUPPORT_FLAGS = (SUPPORT_KEYPAD_LOCK, SUPPORT_EVENT_TIMER)
 
 DEFAULT_NAME = 'sinope'
 DATA_DOMAIN = 'data_' + DOMAIN
@@ -38,7 +79,34 @@ SINOPE_TO_HA_STATE = {
 
 IMPLEMENTED_DEVICE_TYPES = [120] #power control device
 
-def setup_platform(hass, config, add_devices, discovery_info=None):
+SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_KEYPAD_LOCK): cv.string,
+    }
+)
+
+SET_EVENT_TIMER_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_EVENT_TIMER): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=255)
+         ),
+    }
+)
+
+SET_BASIC_DATA_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+    }
+)
+
+def setup_platform(
+    hass: HomeAssistantType,
+    config_entry,
+    add_entities,
+    discovery_info = None,
+) -> None:
     """Set up the Sinope switch."""
     data = hass.data[sinope.DATA_DOMAIN]
     CONF_file = CONFDIR + "sinope_devices.json"
@@ -49,7 +117,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     f.close()
     i = 2
     tot = len(dev_list)
-    devices = []
+    entities = []
     for a in dev_list:
         x = int(dev_list[i][2])
         if x in IMPLEMENTED_DEVICE_TYPES:
@@ -57,7 +125,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
             device_id = "{}".format(dev_list[i][0])
             device_type = "{}".format(int(dev_list[i][2]))
             server = 1
-            devices.append(SinopeSwitch(data, device_id, device_name, device_type, server))
+            entities.append(SinopeSwitch(data, device_id, device_name, device_type, server))
         if i == tot-1:
             break
         i = i + 1
@@ -78,12 +146,66 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
                 device_id = "{}".format(dev_list_2[i][0])
                 device_type = "{}".format(int(dev_list_2[i][2]))
                 server = 2
-                devices.append(SinopeSwitch(data, device_id, device_name, device_type, server))
+                entities.append(SinopeSwitch(data, device_id, device_name, device_type, server))
             if i == tot2-1:
                 break
             i = i + 1
 
-    add_devices(devices, True)
+    add_entities(entities, True)
+
+    def set_keypad_lock_service(service):
+        """ lock/unlock keypad device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for power in entities:
+            if power.entity_id == entity_id:
+                value = {"id": power.unique_id, "lock": service.data[ATTR_KEYPAD_LOCK]}
+                power.set_keypad_lock(value)
+                power.schedule_update_ha_state(True)
+                break
+
+    def set_event_timer_service(service):
+        """ set event timer lenght"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for power in entities:
+            if power.entity_id == entity_id:
+                value = {"id": power.unique_id, "time": service.data[ATTR_EVENT_TIMER]}
+                power.set_event_timer(value)
+                power.schedule_update_ha_state(True)
+                break
+
+    def set_basic_data_service(service):
+        """Set to outside or setpoint temperature display"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for power in entities:
+            if power.entity_id == entity_id:
+                value = {"id": power.unique_id}
+                power.set_basic_data(value)
+                power.schedule_update_ha_state(True)
+                break
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_KEYPAD_LOCK,
+        set_keypad_lock_service,
+        schema=SET_KEYPAD_LOCK_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_EVENT_TIMER,
+        set_event_timer_service,
+        schema=SET_EVENT_TIMER_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_BASIC_DATA,
+        set_basic_data_service,
+        schema=SET_BASIC_DATA_SCHEMA,
+    )
 
 class SinopeSwitch(SwitchEntity):
     """Implementation of a Sinope switch."""
@@ -101,7 +223,8 @@ class SinopeSwitch(SwitchEntity):
         self._alarm = None
         self._current_power_w = None
         self._rssi = None
-        self._timer = 0
+        self._event_timer = 0
+        self._keypad = "Unlocked"
         _LOGGER.debug("Setting up %s: %s", self._name, self._id)
 
     def update(self):
@@ -123,17 +246,12 @@ class SinopeSwitch(SwitchEntity):
         device_info = self._client.get_switch_device_info(self._server, self._id)
         self._wattage = device_info["wattage"] if \
                 device_info["wattage"] is not None else 0.0
-        self._timer = device_info["timer"] if \
+        self._event_timer = device_info["timer"] if \
                 device_info["timer"] is not None else 0
+        self._keypad = "Unlocked" if device_info["keypad"] == 0 else "Locked"
         return
 #        _LOGGER.warning("Cannot update %s: %s", self._name, device_data)
-
-#    def update_info(self): 
-#        device_info = self._client.get_switch_device_info(self._id)
-#        self._wattage = device_info["wattage"]
-#        self._timer = device_info["timer"]
-#        return  
-#       _LOGGER.warning("Cannot update %s: %s", self._name, device_info)
+#        _LOGGER.warning("Cannot update %s: %s", self._name, device_info)
 
     @property
     def server(self):
@@ -146,9 +264,29 @@ class SinopeSwitch(SwitchEntity):
         return self._id
 
     @property
+    def device_class(self):
+        """Return HA device class."""
+        return "power"
+
+    @property
     def name(self):
         """Return the name of the switch."""
         return self._name
+
+    @property
+    def device_info(self):
+        """Return the device info."""
+        return {
+            "identifiers": {(DOMAIN, self.unique_id)},
+            "name": self.name,
+            "manufacturer": "Sinopé",
+            "device_id": self._id,
+        }
+
+    @property
+    def supported_features(self):
+        """Return the list of supported features."""
+        return SUPPORT_FLAGS
 
     @property  
     def is_on(self):
@@ -164,17 +302,28 @@ class SinopeSwitch(SwitchEntity):
         self._client.set_brightness(self._server, self._id, 0)
 
     @property
+    def keypad (self):
+        """Return the keypad state of the device"""
+        return self._keypad
+      
+    @property
+    def event_timer (self):
+        """Return the event timer state of the device"""
+        return self._event_timer
+
+    @property
     def device_state_attributes(self):
         """Return the state attributes."""
         return {'alarm': self._alarm,
                 'operation_mode': self.operation_mode,
                 'rssi': self._rssi,
                 'wattage': self._wattage,
-                'timer': self._timer,
+                'event timer': self._event_timer,
+                'keypad': self._keypad,
                 'server': self._server,
                 'id': self._id,
                 }
-       
+
     @property
     def operation_mode(self):
         return self.to_hass_operation_mode(self._operation_mode)
@@ -193,6 +342,37 @@ class SinopeSwitch(SwitchEntity):
     def is_standby(self):
         """Return true if device is in standby."""
         return self._current_power_w == 0
+
+    def set_keypad_lock(self, value):
+        """Lock or unlock device's keypad, lock = locked, unlock = unlocked"""
+        lock = value["lock"]
+        entity = value["id"]
+        if lock == "lock":
+            lock_commande = 1
+            lock_name = "Locked"
+        else:
+            lock_commande = 0
+            lock_name = "Unlocked"
+        self._client.set_keyboard_lock(
+            self._server, entity, lock_commande)
+        self._keypad = lock_name
+
+    def set_event_timer(self, value):
+        """Set event timer lenght, 0 = off, 1 to 255 = lenght"""
+        time = value["time"]
+        entity = value["id"]
+        if time == 0:
+            time_name = "off"
+        else:
+            time_name = "on"
+        self._client.set_event_timer(
+            self._server, entity, time)
+        self._event_timer = time_name
+
+    def set_basic_data(self, value):
+        """Send command to set new outside temperature."""
+        entity = value["id"]
+        self._client.set_daily_report(self, self._server)
 
     def to_hass_operation_mode(self, mode):
         """Translate Sinope operation modes to hass operation modes."""

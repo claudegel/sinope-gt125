@@ -150,6 +150,16 @@ Look like the GT125 use a different deviceID then the Neviweb portal. Once you h
 For power switch devices, RM3250RF and RM3200RF, you need to push on the top blue ligth (with the wifi logo) to get the deviceID.
 Each time you will add a new device to your GT125 you will need to run that device.py setup.
 
+## Custom services
+Automations require services to be able to send commande. Ex. light.turn_on. For the Sinopé devices connected via GT125 it is possible to use custom services to send specific information to devices or to change some devices parameters. Those custom services can be accessed via development tool/services or can be used in automation:
+
+- sinope.set_second_display, allow to change setting of the thermostats second display from setpoint temperature to outdoor temperature. This need to be sent only once to each devices.
+- sinope.set_outside_temperature, allow to send outdoor temperature to thermostat second display. This need to be sent at least once per hour or the thermostat will revert to setpoint temperature. You can use the special device «all» which is used to broadcast data to each devices at once, or you can send the data to only one device.
+- sinope.set_keypad_lock, allow to lock the keypad of the device. Work for thermostat, light and power controler.
+- sinope.set_event_timer, this is used to set a timer to the light and switch devices events for them to send notice when they are activated.
+- sinope.set_led_indicator, this allow to change led indicator color and intensity on light devices for «on» and «off» state. you can send any color in the RGB list via the three color parameters red, green and blue and you can set intensity of the led indicator.
+- sinope.set_basic_data, this service send date, time, sunset and sunrize data to each devices for accurate operations. It need to be sent once a day for proper operation via automation. You need to specify one devices only and all devices will be updated.
+
 ## Troubleshooting
 If you get a stack trace related to a Sinope component in your `home-assistant.log` file, you can file an issue in this repository.
 
@@ -174,7 +184,8 @@ This will set default log level to warning for all your components, except for S
 
 Two parameters have been removed from configuration.yaml because we don't need them anymore: DK_KEY and MY_WEATHER.
 I have added a new service to the climate component (climate.set_outside_temperature) that allow us to send outside temperature to the thermostats.
-You just need to create and automation that will send that outside temperature to your thermostats every hour or more frequently is you wish.
+Before using it you must set the second display setting for each thermostats you want outdoor temperature to be displayed. This is done via dev tool only once.
+After you just need to create and automation that will send that outside temperature to your thermostats every hour or more frequently is you wish.
 Automation example:
 ```yaml
 #################################
@@ -233,7 +244,6 @@ My floorplan was created with inkscape and I use the same icon used for thermost
 - Leave socket open to listen for events from devices state changes and answers from our data request. For now I open, send request, get result then close socket.
 - Detect events from light dimer and switch so we can receive state changes from the GT125 without polling the devices (faster).
 - Send time, date, sunset, sunrise once a day to each devices. Need to find out how to do that once a day at specific time.
-- Send outside temperature to thermostat once per hour to have it displayed on the second display line. Maybe could be done from automation but would prefer to do it inside Sinope directly.
 - Improve logging and debug.
 
 ## Contributing
