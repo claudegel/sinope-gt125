@@ -787,18 +787,6 @@ class SinopeClient(object):
             raise PySinopeError("Cannot set device brightness")
         return response
 
-    def set_light_indicator(self, state, level, red, green, blue):
-        """Set device indicator led color and intensity."""
-        if state == 0:
-            data_indicator = data_light_indicator_off
-        else:
-            data_indicator = data_light_indicator_on
-        try:
-            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_indicator,set_light_indicator(state,red,green,blue)))).hex())
-        except OSError:
-            raise PySinopeError("Cannot set device led indicator intensity and color")
-        return response
-
     def send_time(self, server, device_id):
         """Send current time to device. it is required to set device mode to auto"""
         try:
