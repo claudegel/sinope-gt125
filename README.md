@@ -182,10 +182,9 @@ This will set default log level to warning for all your components, except for S
 
 ## Sending outside temperature to thermostats
 
-Two parameters have been removed from configuration.yaml because we don't need them anymore: DK_KEY and MY_WEATHER.
-I have added a new service to the climate component (climate.set_outside_temperature) that allow us to send outside temperature to the thermostats.
-Before using it you must set the second display setting for each thermostats you want outdoor temperature to be displayed. This is done via dev tool only once.
+Before using this service you must set the second display setting for each thermostats you want outdoor temperature to be displayed. This is done via dev tool only once with service sinope.set_second_display.
 After you just need to create and automation that will send that outside temperature to your thermostats every hour or more frequently is you wish.
+The temperature must be sent at least onece per hour or thermostat will revert to setpoint temperature display.
 Automation example:
 ```yaml
 #################################
