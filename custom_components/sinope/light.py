@@ -315,12 +315,8 @@ class SinopeLight(LightEntity):
         self._event_timer = device_info[0]["timer"] if \
             device_info[0]["timer"] is not None else 0
         self._keypad = "Unlocked" if device_info[0]["keypad"] == 0 else "Locked"
-        if device_info is not None:
-            self._led_on = device_info[1]["intensity_on"]+","+device_info[1]["red_on"]+","+device_info[1]["green_on"]+","+device_info[1]["blue_on"]
-            self._led_off = device_info[2]["intensity_off"]+","+device_info[2]["red_off"]+","+device_info[2]["green_off"]+","+device_info[2]["blue_off"]
-        else:
-            self._led_on = "0,0,0,0"
-            self._led_off = "0,0,0,0"
+        self._led_on = device_info[1]["intensity_on"]+","+device_info[1]["red_on"]+","+device_info[1]["green_on"]+","+device_info[1]["blue_on"]
+        self._led_off = device_info[2]["intensity_off"]+","+device_info[2]["red_off"]+","+device_info[2]["green_off"]+","+device_info[2]["blue_off"]
         return
 #        _LOGGER.warning("Cannot update %s: %s", self._name, device_info)
         
