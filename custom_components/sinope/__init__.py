@@ -54,7 +54,7 @@ from .const import (
 
 #REQUIREMENTS = ['PY_Sinope==0.1.7']
 REQUIREMENTS = ['crc8==0.1.0']
-VERSION = '1.2.1'
+VERSION = '1.2.2'
 
 DATA_DOMAIN = 'data_' + DOMAIN
 
@@ -398,24 +398,35 @@ def get_led(state,data):
     status = data[20:22]
     if status != "0a":
         _LOGGER.debug("Status code: %s (Wrong answer for: %s) Data:(%s)", status, deviceID, data)
-        return None # device didn't answer, wrong device
+        my_led = {}
+        if state == 1:
+            my_led['intensity_on'] = 0
+            my_led['red_on'] = 0
+            my_led['green_on'] = 0
+            my_led['blue_on'] = 0
+        else:
+            my_led['intensity_off'] = 0
+            my_led['red_off'] = 0
+            my_led['green_off'] = 0
+            my_led['blue_off'] = 0
+        return my_led
     else:
         tc0 = data[46:48]
         tc1 = data[48:50]
         tc2 = data[50:52]
         tc3 = data[52:54]
-    my_led = {}
-    if state == 1:
-        my_led['intensity_on'] = str(int(float.fromhex(tc0)))
-        my_led['red_on'] = str(int(float.fromhex(tc1)))
-        my_led['green_on'] = str(int(float.fromhex(tc2)))
-        my_led['blue_on'] = str(int(float.fromhex(tc3)))
-    else:
-        my_led['intensity_off'] = str(int(float.fromhex(tc0)))
-        my_led['red_off'] = str(int(float.fromhex(tc1)))
-        my_led['green_off'] = str(int(float.fromhex(tc2)))
-        my_led['blue_off'] = str(int(float.fromhex(tc3)))
-    return  my_led
+        my_led = {}
+        if state == 1:
+            my_led['intensity_on'] = str(int(float.fromhex(tc0)))
+            my_led['red_on'] = str(int(float.fromhex(tc1)))
+            my_led['green_on'] = str(int(float.fromhex(tc2)))
+            my_led['blue_on'] = str(int(float.fromhex(tc3)))
+        else:
+            my_led['intensity_off'] = str(int(float.fromhex(tc0)))
+            my_led['red_off'] = str(int(float.fromhex(tc1)))
+            my_led['green_off'] = str(int(float.fromhex(tc2)))
+            my_led['blue_off'] = str(int(float.fromhex(tc3)))
+        return  my_led
 
 def get_power_load(data): # get power in watt use by the device
     sequence = data[12:20]
