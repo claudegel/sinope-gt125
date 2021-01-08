@@ -421,7 +421,7 @@ class SinopeLight(LightEntity):
         self._client.set_brightness(self._server, self._id, 0)
 
     def set_keypad_lock(self, value):
-        """Lock or unlock device's keypad, True = lock, False = unlock"""
+        """Lock or unlock device's keypad, lock = locked, unlock = unlocked"""
         lock = value["lock"]
         entity = value["id"]
         if lock == "lock":
