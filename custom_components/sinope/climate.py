@@ -579,7 +579,7 @@ class SinopeThermostat(ClimateEntity):
         self._outside_temperature = outside_temperature
 
     def set_keypad_lock(self, value):
-        """Lock or unlock device's keypad, lock = lock, unlock = unlock"""
+        """Lock or unlock device's keypad, lock = locked, unlock = unlocked"""
         lock = value["lock"]
         entity = value["id"]
         if lock == "lock":
