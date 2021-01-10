@@ -54,7 +54,7 @@ from .const import (
 
 #REQUIREMENTS = ['PY_Sinope==0.1.7']
 REQUIREMENTS = ['crc8==0.1.0']
-VERSION = '1.2.2'
+VERSION = '1.3.0'
 
 DATA_DOMAIN = 'data_' + DOMAIN
 
@@ -875,6 +875,7 @@ class SinopeClient(object):
 
     def set_backlight_state(self, server, device_id, state):
         """set backlight state, 0 = full intensity, 1 = variable intensity when idle, 2 = off when idle, 3 = always variable intensity """
+        _LOGGER.debug("Parameter server=%s, id=%s, state=%s", server, device_id, state)
         try:
             response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_backlight,set_light_state(state)))).hex())
         except OSError:
@@ -883,6 +884,7 @@ class SinopeClient(object):
 
     def set_backlight_idle(self, server, device_id, level):
         """Set backlight intensity when idle, 0 off to 100 full"""
+        _LOGGER.debug("Parameter server=%s, id=%s, level=%s", server, device_id, level)
         try:
             response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_backlight_idle,set_light_idle(level)))).hex())
         except OSError:
