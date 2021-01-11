@@ -157,6 +157,8 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - sinope.set_outside_temperature, allow to send outdoor temperature to thermostat second display. This need to be sent at least once per hour or the thermostat will revert to setpoint temperature. You can use the special device «all» which is used to broadcast data to each devices at once, or you can send the data to only one device.
 - sinope.set_keypad_lock, allow to lock the keypad of the device. Work for thermostat, light and power controler.
 - sinope.set_event_timer, this is used to set a timer to the light and switch devices events for them to send notice when they are activated.
+- sinope.set_backlight_state to set backlight state, 0 = full intensity, 1 = variable intensity when idle, 2 = off when idle, 3 = always variable intensity.
+- sinope.set_backlight_idle to set backlight intensity when idle, 0 = off, 1 to 100 intensity.
 - sinope.set_led_indicator, this allow to change led indicator color and intensity on light devices for «on» and «off» state. you can send any color in the RGB list via the three color parameters red, green and blue and you can set intensity of the led indicator.
 - sinope.set_basic_data, this service send date, time, sunset and sunrize data to each devices for accurate operations. It need to be sent once a day for proper operation via automation. You need to specify one devices only and all devices will be updated.
 
