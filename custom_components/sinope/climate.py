@@ -46,10 +46,11 @@ from homeassistant.components.climate.const import (
 )
 
 from homeassistant.const import (
+    ATTR_ENTITY_ID,
+    DEVICE_CLASS_TEMPERATURE,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
     ATTR_TEMPERATURE,
-    ATTR_ENTITY_ID,
 )
 
 from datetime import timedelta
@@ -224,7 +225,7 @@ def setup_platform(
     add_entities(entities, True)
 
     def set_outside_temperature_service(service):
-        """ send outside temperature to thermostats"""
+        """ send local outside temperature to thermostats"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -246,7 +247,7 @@ def setup_platform(
                 break
 
     def set_second_display_service(service):
-        """Set to outside or setpoint temperature display"""
+        """Set to outside or setpoint temperature device second display"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -579,7 +580,7 @@ class SinopeThermostat(ClimateEntity):
         self._outside_temperature = outside_temperature
 
     def set_keypad_lock(self, value):
-        """Lock or unlock device's keypad, lock = lock, unlock = unlock"""
+        """Lock or unlock device's keypad, lock = Locked, unlock = Unlocked"""
         lock = value["lock"]
         entity = value["id"]
         if lock == "lock":
@@ -635,7 +636,7 @@ class SinopeThermostat(ClimateEntity):
         self._backlight_state = state_name
 
     def set_basic_data(self, value):
-        """Send command to set new outside temperature."""
+        """Send command to set date, tine,sunset and sunrise data."""
         entity = value["id"]
         self._client.set_daily_report(self, self._server)
 

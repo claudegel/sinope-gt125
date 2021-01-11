@@ -315,8 +315,8 @@ class SinopeLight(LightEntity):
         self._event_timer = device_info[0]["timer"] if \
             device_info[0]["timer"] is not None else 0
         self._keypad = "Unlocked" if device_info[0]["keypad"] == 0 else "Locked"
-        self._led_on = device_info[1]["intensity_on"]+","+device_info[1]["red_on"]+","+device_info[1]["green_on"]+","+device_info[1]["blue_on"]
-        self._led_off = device_info[2]["intensity_off"]+","+device_info[2]["red_off"]+","+device_info[2]["green_off"]+","+device_info[2]["blue_off"]
+        self._led_on = str(device_info[1]["intensity_on"])+","+str(device_info[1]["red_on"])+","+str(device_info[1]["green_on"])+","+str(device_info[1]["blue_on"])
+        self._led_off = str(device_info[2]["intensity_off"])+","+str(device_info[2]["red_off"])+","+str(device_info[2]["green_off"])+","+str(device_info[2]["blue_off"])
         return
 #        _LOGGER.warning("Cannot update %s: %s", self._name, device_info)
         
@@ -407,7 +407,7 @@ class SinopeLight(LightEntity):
     # state. So we force the set_brightness each time.
 
     def turn_on(self, **kwargs):
-        """Turn the light on."""
+        """ Turn the light on. """
         brightness_pct = 100
         if kwargs.get(ATTR_BRIGHTNESS):
             brightness_pct = \
@@ -417,11 +417,11 @@ class SinopeLight(LightEntity):
         self._client.set_brightness(self._server, self._id, brightness_pct)
 
     def turn_off(self, **kwargs):
-        """Turn the light off."""
+        """ Turn the light off. """
         self._client.set_brightness(self._server, self._id, 0)
 
     def set_keypad_lock(self, value):
-        """Lock or unlock device's keypad, True = lock, False = unlock"""
+        """ Lock or unlock device's keypad, lock = Locked, unlock = Unlocked """
         lock = value["lock"]
         entity = value["id"]
         if lock == "lock":
@@ -435,7 +435,7 @@ class SinopeLight(LightEntity):
         self._keypad = lock_name
 
     def set_event_timer(self, value):
-        """Set event timer lenght, 0 = off, 1 to 255 = lenght"""
+        """ Set event timer lenght, 0 = off, 1 to 255 = lenght. """
         time = value["time"]
         entity = value["id"]
         if time == 0:
@@ -447,7 +447,7 @@ class SinopeLight(LightEntity):
         self._event_timer = time_name
 
     def set_led_indicator(self, value):
-        """Set led indicator color and intensity, base on RGB red, green, blue color (0-255) and intensity from 0 to 100"""
+        """ Set led indicator color and intensity, base on RGB red, green, blue color (0-255) and intensity from 0 to 100 """
         state = value["state"]
         entity = value["id"]
         intensity = value["intensity"]
@@ -462,7 +462,7 @@ class SinopeLight(LightEntity):
             self._led_on = str(value["intensity"])+","+str(value["red"])+","+str(value["green"])+","+str(value["blue"])
 
     def set_basic_data(self, value):
-        """Send command to set new outside temperature."""
+        """ Send command to set new outside temperature. """
         entity = value["id"]
         self._client.set_daily_report(self, self._server)
 
