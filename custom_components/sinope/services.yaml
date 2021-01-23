@@ -1,8 +1,8 @@
 set_outside_temperature:
-  description: Send outside temperature to sinope thermostats.
+  description: Send outside temperature to one sinope thermostat, or use special entity_id «all» to send to all thermostats at once.
   fields:
     entity_id:
-      description: Name(s) of thermostats that will receive outside temperature.
+      description: Entity_id of thermostats that will receive outside temperature. Use «all» to broadcast outside temperature to all thermostats at once.
       example: "climate.sinope_climate_office"
     temperature:
       description: outside temperature that will be sent to thermostat in oC or oF depending on your setup.
