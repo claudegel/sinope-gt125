@@ -84,5 +84,5 @@ set_basic_data:
   description: Send date, time, sunset and sunrise to each device once a day.
   fields:
     entity_id:
-      description: Name(s) of device to send the daily parameters.
+      description: Name(s) of device to send the daily parameters. Select any device, data will be broadcasted to all devices.
       example: "light.sinope_light_office"
