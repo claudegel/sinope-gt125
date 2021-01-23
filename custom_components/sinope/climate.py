@@ -127,7 +127,7 @@ IMPLEMENTED_DEVICE_TYPES = [10, 20, 21]
 
 SET_OUTSIDE_TEMPERATURE_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_ENTITY_ID): cv.string,
          vol.Required(ATTR_OUTSIDE_TEMPERATURE): vol.All(
              vol.Coerce(float), vol.Range(min=-40, max=40)
          ),
@@ -230,10 +230,13 @@ def setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "temperature": service.data[ATTR_OUTSIDE_TEMPERATURE]}
-                thermostat.set_outside_temperature(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+                dev_id = thermostat.unique_id
+            else:
+                dev_id = entity_id
+            value = {"id": dev_id, "temperature": service.data[ATTR_OUTSIDE_TEMPERATURE]}
+            thermostat.set_outside_temperature(value)
+            thermostat.schedule_update_ha_state(True)
+            break
 
     def set_keypad_lock_service(service):
         """ lock/unlock keypad device"""
