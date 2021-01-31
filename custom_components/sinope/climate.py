@@ -81,11 +81,11 @@ from .const import (
     SUPPORT_KEYPAD_LOCK,
     SUPPORT_SECOND_DISPLAY,
     SERVICE_SET_OUTSIDE_TEMPERATURE,
-    SERVICE_SET_KEYPAD_LOCK,
+    SERVICE_SET_CLIMATE_KEYPAD_LOCK,
     SERVICE_SET_SECOND_DISPLAY,
     SERVICE_SET_BACKLIGHT_IDLE,
     SERVICE_SET_BACKLIGHT_STATE,
-    SERVICE_SET_BASIC_DATA,
+    SERVICE_SET_CLIMATE_BASIC_DATA,
     PRESET_BYPASS,
 )
 
@@ -134,7 +134,7 @@ SET_OUTSIDE_TEMPERATURE_SCHEMA = vol.Schema(
     }
 )
 
-SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
+SET_CLIMATE_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_KEYPAD_LOCK): cv.string,
@@ -166,7 +166,7 @@ SET_BACKLIGHT_IDLE_SCHEMA = vol.Schema(
     }
 )
 
-SET_BASIC_DATA_SCHEMA = vol.Schema(
+SET_CLIMATE_BASIC_DATA_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     }
@@ -238,7 +238,7 @@ def setup_platform(
             thermostat.schedule_update_ha_state(True)
             break
 
-    def set_keypad_lock_service(service):
+    def set_climate_keypad_lock_service(service):
         """ lock/unlock keypad device"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -282,7 +282,7 @@ def setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_basic_data_service(service):
+    def set_climate_basic_data_service(service):
         """Set to outside or setpoint temperature display"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -302,9 +302,9 @@ def setup_platform(
     
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_KEYPAD_LOCK,
-        set_keypad_lock_service,
-        schema=SET_KEYPAD_LOCK_SCHEMA,
+        SERVICE_SET_CLIMATE_KEYPAD_LOCK,
+        set_climate_keypad_lock_service,
+        schema=SET_CLIMATE_KEYPAD_LOCK_SCHEMA,
     )
 
     hass.services.async_register(
@@ -330,9 +330,9 @@ def setup_platform(
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_BASIC_DATA,
-        set_basic_data_service,
-        schema=SET_BASIC_DATA_SCHEMA,
+        SERVICE_SET_CLIMATE_BASIC_DATA,
+        set_climate_basic_data_service,
+        schema=SET_CLIMATE_BASIC_DATA_SCHEMA,
     )
 
 class SinopeThermostat(ClimateEntity):
