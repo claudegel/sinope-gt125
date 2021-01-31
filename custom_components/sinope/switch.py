@@ -54,9 +54,9 @@ from .const import (
     ATTR_KEYPAD_LOCK,
     SUPPORT_EVENT_TIMER,
     SUPPORT_KEYPAD_LOCK,
-    SERVICE_SET_EVENT_TIMER,
-    SERVICE_SET_KEYPAD_LOCK,
-    SERVICE_SET_BASIC_DATA,
+    SERVICE_SET_SWITCH_EVENT_TIMER,
+    SERVICE_SET_SWITCH_KEYPAD_LOCK,
+    SERVICE_SET_SWITCH_BASIC_DATA,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -79,14 +79,14 @@ SINOPE_TO_HA_STATE = {
 
 IMPLEMENTED_DEVICE_TYPES = [120] #power control device
 
-SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
+SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_KEYPAD_LOCK): cv.string,
     }
 )
 
-SET_EVENT_TIMER_SCHEMA = vol.Schema(
+SET_SWITCH_EVENT_TIMER_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_EVENT_TIMER): vol.All(
@@ -95,7 +95,7 @@ SET_EVENT_TIMER_SCHEMA = vol.Schema(
     }
 )
 
-SET_BASIC_DATA_SCHEMA = vol.Schema(
+SET_SWITCH_BASIC_DATA_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     }
@@ -153,7 +153,7 @@ def setup_platform(
 
     add_entities(entities, True)
 
-    def set_keypad_lock_service(service):
+    def set_switch_keypad_lock_service(service):
         """ lock/unlock keypad device"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -164,7 +164,7 @@ def setup_platform(
                 power.schedule_update_ha_state(True)
                 break
 
-    def set_event_timer_service(service):
+    def set_switch_event_timer_service(service):
         """ set event timer lenght"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -175,7 +175,7 @@ def setup_platform(
                 power.schedule_update_ha_state(True)
                 break
 
-    def set_basic_data_service(service):
+    def set_switch_basic_data_service(service):
         """Set to outside or setpoint temperature display"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -188,23 +188,23 @@ def setup_platform(
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_KEYPAD_LOCK,
-        set_keypad_lock_service,
-        schema=SET_KEYPAD_LOCK_SCHEMA,
+        SERVICE_SET_SWITCH_KEYPAD_LOCK,
+        set_switch_keypad_lock_service,
+        schema=SET_SWITCH_KEYPAD_LOCK_SCHEMA,
     )
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_EVENT_TIMER,
-        set_event_timer_service,
-        schema=SET_EVENT_TIMER_SCHEMA,
+        SERVICE_SET_SWITCH_EVENT_TIMER,
+        set_switch_event_timer_service,
+        schema=SET_SWITCH_EVENT_TIMER_SCHEMA,
     )
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_BASIC_DATA,
-        set_basic_data_service,
-        schema=SET_BASIC_DATA_SCHEMA,
+        SERVICE_SET_SWITCH_BASIC_DATA,
+        set_switch_basic_data_service,
+        schema=SET_SWITCH_BASIC_DATA_SCHEMA,
     )
 
 class SinopeSwitch(SwitchEntity):
