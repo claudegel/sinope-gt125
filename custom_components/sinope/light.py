@@ -65,10 +65,10 @@ from .const import (
     ATTR_BLUE,
     SUPPORT_EVENT_TIMER,
     SUPPORT_KEYPAD_LOCK,
-    SERVICE_SET_EVENT_TIMER,
-    SERVICE_SET_KEYPAD_LOCK,
+    SERVICE_SET_LIGHT_EVENT_TIMER,
+    SERVICE_SET_LIGHT_KEYPAD_LOCK,
     SERVICE_SET_LED_INDICATOR,
-    SERVICE_SET_BASIC_DATA,
+    SERVICE_SET_LIGHT_BASIC_DATA,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -94,14 +94,14 @@ DEVICE_TYPE_DIMMER = [112]
 DEVICE_TYPE_LIGHT = [102]
 IMPLEMENTED_DEVICE_TYPES = DEVICE_TYPE_LIGHT + DEVICE_TYPE_DIMMER
 
-SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
+SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_KEYPAD_LOCK): cv.string,
     }
 )
 
-SET_EVENT_TIMER_SCHEMA = vol.Schema(
+SET_LIGHT_EVENT_TIMER_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_EVENT_TIMER): vol.All(
@@ -131,7 +131,7 @@ SET_LED_INDICATOR_SCHEMA = vol.Schema(
     }
 )
 
-SET_BASIC_DATA_SCHEMA = vol.Schema(
+SET_LIGHT_BASIC_DATA_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     }
@@ -195,7 +195,7 @@ def setup_platform(
 
     add_entities(entities, True)
 
-    def set_keypad_lock_service(service):
+    def set_light_keypad_lock_service(service):
         """ lock/unlock keypad device"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -206,7 +206,7 @@ def setup_platform(
                 light.schedule_update_ha_state(True)
                 break
 
-    def set_event_timer_service(service):
+    def set_light_event_timer_service(service):
         """ lock/unlock keypad device"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -228,7 +228,7 @@ def setup_platform(
                 light.schedule_update_ha_state(True)
                 break
 
-    def set_basic_data_service(service):
+    def set_light_basic_data_service(service):
         """Set to outside or setpoint temperature display"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -241,16 +241,16 @@ def setup_platform(
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_KEYPAD_LOCK,
-        set_keypad_lock_service,
-        schema=SET_KEYPAD_LOCK_SCHEMA,
+        SERVICE_SET_LIGHT_KEYPAD_LOCK,
+        set_light_keypad_lock_service,
+        schema=SET_LIGHT_KEYPAD_LOCK_SCHEMA,
     )
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_EVENT_TIMER,
-        set_event_timer_service,
-        schema=SET_EVENT_TIMER_SCHEMA,
+        SERVICE_SET_LIGHT_EVENT_TIMER,
+        set_light_event_timer_service,
+        schema=SET_LIGHT_EVENT_TIMER_SCHEMA,
     )
 
     hass.services.async_register(
@@ -262,9 +262,9 @@ def setup_platform(
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_BASIC_DATA,
-        set_basic_data_service,
-        schema=SET_BASIC_DATA_SCHEMA,
+        SERVICE_SET_LIGHT_BASIC_DATA,
+        set_light_basic_data_service,
+        schema=SET_LIGHT_BASIC_DATA_SCHEMA,
     )
 
 def brightness_to_percentage(brightness):
