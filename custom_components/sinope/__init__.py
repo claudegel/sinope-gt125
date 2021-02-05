@@ -893,6 +893,7 @@ class SinopeClient(object):
 
     def set_daily_report(self, server):
         """Set report to send data to each devices once a day. Needed to get proper auto mode operation"""
+        _LOGGER.debug("Parameter server=%s", server)
         try:
             result = get_result(bytearray(send_request(self, server, data_report_request(data_report_command,all_unit,data_time,set_time(self._tz)))).hex())
             result = get_result(bytearray(send_request(self, server, data_report_request(data_report_command,all_unit,data_date,set_date(self._tz)))).hex())
