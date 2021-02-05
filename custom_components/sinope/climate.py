@@ -641,7 +641,7 @@ class SinopeThermostat(ClimateEntity):
     def set_basic_data(self, value):
         """Send command to set date, tine,sunset and sunrise data."""
         entity = value["id"]
-        self._client.set_daily_report(self, self._server)
+        self._client.set_daily_report(self._server)
 
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
