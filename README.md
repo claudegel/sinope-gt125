@@ -164,10 +164,10 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - sinope.set_backlight_state to set backlight state, 0 = full intensity, 1 = variable intensity when idle, 2 = off when idle, 3 = always variable intensity.
 - sinope.set_backlight_idle to set backlight intensity when idle, 0 = off, 1 to 100 intensity.
 - sinope.set_led_indicator, this allow to change led indicator color and intensity on light devices for «on» and «off» state. you can send any color in the RGB list via the three color parameters red, green and blue and you can set intensity of the led indicator.
-- sinope.set_climate_basic_data, this service send date, time, sunset and sunrize data to each devices for accurate operations. It need to be sent once a day for proper operation via automation. You need to specify one devices only and all devices will be updated. Needed to be done on only one devices, climate, light or switch.
+- sinope.set_climate_basic_data, this service send date, time, sunset and sunrize data to each devices for accurate operations. It need to be sent once a day for proper operation via automation. You need to specify one devices only and all devices will be updated. Needed to be done on only one devices, climate, light or switch. 
 - sinope.set_light_basic_data, this service send date, time, sunset and sunrize data to each devices for accurate operations. It need to be sent once a day for proper operation via automation. You need to specify one devices only and all devices will be updated. Needed to be done on only one devices, climate, light or switch.
 - sinope.set_switch_basic_data, this service send date, time, sunset and sunrize data to each devices for accurate operations. It need to be sent once a day for proper operation via automation. You need to specify one devices only and all devices will be updated. Needed to be done on only one devices, climate, light or switch.
-
+The last three services take into account the time zone set in HA or use the default time zone America/Toronto. They also manage the time changes for DST.
 ## Troubleshooting
 If you get a stack trace related to a Sinope component in your `home-assistant.log` file, you can file an issue in this repository.
 
