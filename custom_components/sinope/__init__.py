@@ -229,7 +229,6 @@ def set_date(zone):
 def set_time(zone):
     timezone = pytz.timezone(zone)
     now = datetime.now().astimezone(tz=timezone)
-    _LOGGER.warning("Time zone = %s, now = %s", zone, now)
     s = bytearray(struct.pack('<i', int(now.strftime("%S")))[:1]).hex() #second converted to bytes
     m = bytearray(struct.pack('<i', int(now.strftime("%M")))[:1]).hex() #minutes converted to bytes
     h = bytearray(struct.pack('<i', int(now.strftime("%H"))+get_dst(zone))[:1]).hex() #hours converted to bytes
@@ -243,10 +242,8 @@ def set_sun_time(city, zone, period): # period = sunrise or sunset
     sun = city.sun(date=datetime.now().astimezone(tz=timezone), local=True)
     if period == "sunrise":
         now = sun['sunrise']
-        _LOGGER.warning("Sunrise = %s", now)
     else:
         now = sun['sunset']
-        _LOGGER.warning("Sunset = %s", now)
     s = bytearray(struct.pack('<i', int(now.strftime("%S")))[:1]).hex() #second converted to bytes
     m = bytearray(struct.pack('<i', int(now.strftime("%M")))[:1]).hex() #minutes converted to bytes
     h = bytearray(struct.pack('<i', int(now.strftime("%H"))+get_dst(zone))[:1]).hex() #hours converted to bytes
