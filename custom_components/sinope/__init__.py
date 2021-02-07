@@ -42,7 +42,7 @@ from .const import (
 
 #REQUIREMENTS = ['PY_Sinope==0.1.7']
 REQUIREMENTS = ['crc8==0.1.0']
-VERSION = '1.4.1'
+VERSION = '1.4.2'
 
 DATA_DOMAIN = 'data_' + DOMAIN
 
@@ -51,6 +51,7 @@ _LOGGER = logging.getLogger(__name__)
 #default values
 SCAN_INTERVAL = timedelta(seconds=180)
 MY_CITY = 'Montreal'
+MY_TZ = 'America/Toronto'
 
 REQUESTS_TIMEOUT = 30
 
@@ -63,6 +64,7 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_ID_2): cv.string,
         vol.Optional(CONF_SERVER_2): cv.string,
         vol.Optional(CONF_MY_CITY, default=MY_CITY): cv.string,
+        vol.Optional(CONF_TIME_ZONE, default=MY_TZ): cv.time_zone,
         vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL):
             cv.time_period
     })
@@ -84,6 +86,8 @@ def setup(hass, hass_config) -> bool:
     global SCAN_INTERVAL
     SCAN_INTERVAL = hass_config[DOMAIN].get(CONF_SCAN_INTERVAL)
     _LOGGER.debug("Setting scan interval to: %s", SCAN_INTERVAL)
+    
+    _LOGGER.debug("Setting time zone as: %s", hass_config[DOMAIN].get(CONF_TIME_ZONE))
 
     discovery.load_platform(hass, 'climate', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'light', DOMAIN, {}, hass_config)
@@ -203,13 +207,15 @@ def crc_check(bufer):
     return None
 
 def get_dst(zone): # daylight saving time is on or not
-    localtime = datetime.now(zone)
+    timezone = pytz.timezone(zone)
+    localtime = datetime.now().astimezone(tz=timezone)
     if localtime.dst():
         return 128
     return 0
 
 def set_date(zone):
-    now = datetime.now(zone)
+    timezone = pytz.timezone(zone)
+    now = datetime.now().astimezone(tz=timezone)
     day = int(now.strftime("%w"))-1
     if day == -1:
         day = 6
@@ -221,7 +227,8 @@ def set_date(zone):
     return date
 
 def set_time(zone):
-    now = datetime.now(zone)
+    timezone = pytz.timezone(zone)
+    now = datetime.now().astimezone(tz=timezone)
     s = bytearray(struct.pack('<i', int(now.strftime("%S")))[:1]).hex() #second converted to bytes
     m = bytearray(struct.pack('<i', int(now.strftime("%M")))[:1]).hex() #minutes converted to bytes
     h = bytearray(struct.pack('<i', int(now.strftime("%H"))+get_dst(zone))[:1]).hex() #hours converted to bytes
@@ -231,7 +238,8 @@ def set_time(zone):
 def set_sun_time(city, zone, period): # period = sunrise or sunset
     a = Astral()
     city = a[city]
-    sun = city.sun(date=datetime.now(zone), local=True)
+    timezone = pytz.timezone(zone)
+    sun = city.sun(date=datetime.now().astimezone(tz=timezone), local=True)
     if period == "sunrise":
         now = sun['sunrise']
     else:
@@ -893,6 +901,7 @@ class SinopeClient(object):
 
     def set_daily_report(self, server):
         """Set report to send data to each devices once a day. Needed to get proper auto mode operation"""
+        _LOGGER.debug("Parameter server=%s", server)
         try:
             result = get_result(bytearray(send_request(self, server, data_report_request(data_report_command,all_unit,data_time,set_time(self._tz)))).hex())
             result = get_result(bytearray(send_request(self, server, data_report_request(data_report_command,all_unit,data_date,set_date(self._tz)))).hex())

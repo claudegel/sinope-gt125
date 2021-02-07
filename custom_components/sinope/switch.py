@@ -372,7 +372,7 @@ class SinopeSwitch(SwitchEntity):
     def set_basic_data(self, value):
         """Send command to set new outside temperature."""
         entity = value["id"]
-        self._client.set_daily_report(self, self._server)
+        self._client.set_daily_report(self._server)
 
     def to_hass_operation_mode(self, mode):
         """Translate Sinope operation modes to hass operation modes."""
