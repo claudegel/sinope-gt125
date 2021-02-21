@@ -73,6 +73,8 @@ from homeassistant.helpers import (
 from .const import (
     DOMAIN,
     ATTR_OUTSIDE_TEMPERATURE,
+    ATTR_MIN_TEMP,
+    ATTR_MAX_TEMP,
     ATTR_KEYPAD_LOCK,
     ATTR_DISPLAY,
     ATTR_LEVEL,
@@ -86,6 +88,8 @@ from .const import (
     SERVICE_SET_BACKLIGHT_IDLE,
     SERVICE_SET_BACKLIGHT_STATE,
     SERVICE_SET_CLIMATE_BASIC_DATA,
+    SERVICE_SET_MAX_SETPOINT,
+    SERVICE_SET_MIN_SETPOINT,
     PRESET_BYPASS,
 )
 
@@ -130,6 +134,24 @@ SET_OUTSIDE_TEMPERATURE_SCHEMA = vol.Schema(
          vol.Required(ATTR_ENTITY_ID): cv.string,
          vol.Required(ATTR_OUTSIDE_TEMPERATURE): vol.All(
              vol.Coerce(float), vol.Range(min=-40, max=40)
+         ),
+    }
+)
+
+SET_MIN_SETPOINT_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.string,
+         vol.Required(ATTR_MIN_TEMP): vol.All(
+             vol.Coerce(float), vol.Range(min=5, max=24)
+         ),
+    }
+)
+
+SET_MAX_SETPOINT_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.string,
+         vol.Required(ATTR_MAX_TEMP): vol.All(
+             vol.Coerce(float), vol.Range(min=10, max=30)
          ),
     }
 )
@@ -238,6 +260,28 @@ def setup_platform(
             thermostat.schedule_update_ha_state(True)
             break
 
+    def set_min_setpoint_service(service):
+        """ send local outside temperature to thermostats"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "temperature": service.data[ATTR_MIN_TEMP]}
+                thermostat.set_temperature_min(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_max_setpoint_service(service):
+        """ send local outside temperature to thermostats"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "temperature": service.data[ATTR_MAX_TEMP]}
+                thermostat.set_temperature_max(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     def set_climate_keypad_lock_service(service):
         """ lock/unlock keypad device"""
         entity_id = service.data[ATTR_ENTITY_ID]
@@ -299,7 +343,21 @@ def setup_platform(
         set_outside_temperature_service,
         schema=SET_OUTSIDE_TEMPERATURE_SCHEMA,
     )
-    
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_MIN_SETPOINT,
+        set_min_setpoint_service,
+        schema=SET_MIN_SETPOINT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_MAX_SETPOINT,
+        set_max_setpoint_service,
+        schema=SET_MAX_SETPOINT_SCHEMA,
+    )
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_CLIMATE_KEYPAD_LOCK,
@@ -564,6 +622,24 @@ class SinopeThermostat(ClimateEntity):
             return
         self._client.set_temperature(self._server, self._id, temperature)
         self._target_temp = temperature
+
+    def set_temperature_min(self, value):
+        """Send command to set new minimum setpoint temperature."""
+        min_temperature = value["temperature"]
+        entity = value["id"]
+        if min_temperature is None:
+            return
+        self._client.set_temperature_min(self._server, entity, min_temperature)
+        self._min_temp = min_temperature
+
+    def set_temperature_max(self, value):
+        """Send command to set new maximum setpoint temperature."""
+        max_temperature = value["temperature"]
+        entity = value["id"]
+        if max_temperature is None:
+            return
+        self._client.set_temperature_max(self._server, entity, max_temperature)
+        self._max_temp = max_temperature
 
     def set_outside_temperature(self, value):
         """Send command to set new outside temperature."""
