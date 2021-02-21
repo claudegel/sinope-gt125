@@ -8,6 +8,26 @@ set_outside_temperature:
       description: outside temperature that will be sent to thermostat in oC or oF depending on your setup.
       example: 24.5
 
+set_min_setpoint:
+  description: Send minimum setpoint temperature to one sinope thermostat (between 5 and 24oC).
+  fields:
+    entity_id:
+      description: Entity_id of thermostats that will receive minimum setpoint temperature.
+      example: "climate.sinope_climate_office"
+    tempMin:
+      description: Minimum setpoint temperature that will be sent to thermostat in oC or oF depending on your setup.
+      example: 5
+
+set_max_setpoint:
+  description: Send maximum setpoint temperature to one sinope thermostat (between 10 and 30oC).
+  fields:
+    entity_id:
+      description: Entity_id of thermostats that will receive maximum setpoint temperature.
+      example: "climate.sinope_climate_office"
+    tempMax:
+      description: Maximum setpoint temperature that will be sent to thermostat in oC or oF depending on your setup.
+      example: 24.5
+
 set_climate_keypad_lock:
   description: Lock or unlock sinope climate device keypad.
   fields:
