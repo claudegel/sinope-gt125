@@ -42,7 +42,7 @@ from .const import (
 
 #REQUIREMENTS = ['PY_Sinope==0.1.7']
 REQUIREMENTS = ['crc8==0.1.0']
-VERSION = '1.4.2'
+VERSION = '1.5.0'
 
 DATA_DOMAIN = 'data_' + DOMAIN
 
@@ -834,6 +834,22 @@ class SinopeClient(object):
             response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_setpoint,set_temperature(temperature)))).hex())
         except OSError:
             raise PySinopeError("Cannot set device setpoint temperature")
+        return response
+
+    def set_temperature_min(self, server, device_id, temperature):
+        """Set device minimum setpoint temperature."""
+        try:
+            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_min_temp,set_temperature(temperature)))).hex())
+        except OSError:
+            raise PySinopeError("Cannot set device minimum setpoint temperature")
+        return response
+
+    def set_temperature_max(self, server, device_id, temperature):
+        """Set device maximum setpoint temperature."""
+        try:
+            response = get_result(bytearray(send_request(self, server, data_write_request(data_write_command,device_id,data_max_temp,set_temperature(temperature)))).hex())
+        except OSError:
+            raise PySinopeError("Cannot set device maximum setpoint temperature")
         return response
 
     def set_event_timer(self, server, device_id, time):

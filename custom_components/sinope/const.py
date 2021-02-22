@@ -6,6 +6,8 @@ CONF_SERVER_2 = 'server_2'
 CONF_MY_CITY = 'my_city'
 
 ATTR_OUTSIDE_TEMPERATURE = "temperature"
+ATTR_MIN_TEMP = "tempMin"
+ATTR_MAX_TEMP = "tempMax"
 ATTR_KEYPAD_LOCK = "lock"
 ATTR_EVENT_TIMER = "time"
 ATTR_DISPLAY = "display"
@@ -29,6 +31,8 @@ SERVICE_SET_LED_INDICATOR = "set_led_indicator"
 SERVICE_SET_CLIMATE_BASIC_DATA = "set_climate_basic_data"
 SERVICE_SET_LIGHT_BASIC_DATA = "set_light_basic_data"
 SERVICE_SET_SWITCH_BASIC_DATA = "set_switch_basic_data"
+SERVICE_SET_MAX_SETPOINT = "set_max_setpoint"
+SERVICE_SET_MIN_SETPOINT = "set_min_setpoint"
 
 SUPPORT_OUTSIDE_TEMPERATURE = 128
 SUPPORT_KEYPAD_LOCK = 256
