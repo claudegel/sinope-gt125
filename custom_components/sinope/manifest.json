@@ -4,5 +4,6 @@
   "documentation": "https://github.com/claudegel/sinope-gt125",
   "dependencies": [],
   "codeowners": ["@claudegel"],
-  "requirements": ["crc8==0.1.0"]
+  "requirements": ["crc8==0.1.0"],
+  "version": "1.5.1"
 }
