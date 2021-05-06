@@ -8,7 +8,8 @@ import socket
 import sys
 import pytz
 import time
-from astral import Astral
+from astral.sun import sun
+from astral import LocationInfo
 from . import crc8
 from datetime import datetime, timedelta
 from random import randint
@@ -42,7 +43,7 @@ from .const import (
 
 #REQUIREMENTS = ['PY_Sinope==0.1.7']
 REQUIREMENTS = ['crc8==0.1.0']
-VERSION = '1.5.1'
+VERSION = '1.5.2'
 
 DATA_DOMAIN = 'data_' + DOMAIN
 
@@ -236,14 +237,14 @@ def set_time(zone):
     return time
 
 def set_sun_time(city, zone, period): # period = sunrise or sunset
-    a = Astral()
-    city = a[city]
-    timezone = pytz.timezone(zone)
-    sun = city.sun(date=datetime.now().astimezone(tz=timezone), local=True)
+    cit = LocationInfo()
+    cit.name = city
+    cit.timezone = zone
+    s = sun(cit.observer, date=datetime.now(), tzinfo=pytz.timezone(zone))
     if period == "sunrise":
-        now = sun['sunrise']
+        now = s['sunrise']
     else:
-        now = sun['sunset']
+        now = s['sunset']
     s = bytearray(struct.pack('<i', int(now.strftime("%S")))[:1]).hex() #second converted to bytes
     m = bytearray(struct.pack('<i', int(now.strftime("%M")))[:1]).hex() #minutes converted to bytes
     h = bytearray(struct.pack('<i', int(now.strftime("%H"))+get_dst(zone))[:1]).hex() #hours converted to bytes
