@@ -500,7 +500,7 @@ class SinopeThermostat(ClimateEntity):
         }
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes."""
         return {'alarm': self._alarm,
                 'keypad': self._keypad,

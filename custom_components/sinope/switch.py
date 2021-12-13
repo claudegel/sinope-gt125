@@ -312,7 +312,7 @@ class SinopeSwitch(SwitchEntity):
         return self._event_timer
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes."""
         return {'alarm': self._alarm,
                 'operation_mode': self.operation_mode,

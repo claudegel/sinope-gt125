@@ -378,7 +378,7 @@ class SinopeLight(LightEntity):
         return self._event_timer
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
         if self._is_dimmable:
