@@ -47,6 +47,7 @@ from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.typing import HomeAssistantType
+from homeassistant.components.sensor import SensorDeviceClass
 
 from .const import (
     DOMAIN,
@@ -266,7 +267,7 @@ class SinopeSwitch(SwitchEntity):
     @property
     def device_class(self):
         """Return HA device class."""
-        return "power"
+        return SensorDeviceClass.POWER
 
     @property
     def name(self):
