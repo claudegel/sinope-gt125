@@ -47,7 +47,6 @@ from homeassistant.components.climate.const import (
 
 from homeassistant.const import (
     ATTR_ENTITY_ID,
-    DEVICE_CLASS_TEMPERATURE,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
     ATTR_TEMPERATURE,
@@ -62,6 +61,8 @@ from homeassistant.core import (
 from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.typing import HomeAssistantType
+from homeassistant.components.sensor import SensorDeviceClass
+
 from homeassistant.helpers import (
     entity_platform,
     service,
@@ -480,7 +481,7 @@ class SinopeThermostat(ClimateEntity):
     @property
     def device_class(self):
         """Return HA device class."""
-        return "heat"
+        return SensorDeviceClass.TEMPERATURE
 
     @property
     def name(self):
