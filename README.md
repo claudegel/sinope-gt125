@@ -213,7 +213,7 @@ Automation example:
    you can use any temperature provider; Dark Sky, Openweathermap, even an ouside sensor that give you your local temperature.
    
 ## Customization
-Install Custom UI and add the following in your code:
+Install  [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component via HACS and add the following in your code:
 
 Icons for heat level: create folder www in the root folder .homeassistant/www
 copy the six icons there. You can find them under local/www
