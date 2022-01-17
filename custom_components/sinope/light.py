@@ -306,7 +306,7 @@ class SinopeLight(LightEntity):
         _LOGGER.debug("Updating %s (%s sec): %s",
             self._name, elapsed, device_data)
         self._brightness_pct = device_data["intensity"] if \
-            device_data["intensity"] is not None else 0.0
+            device_data["intensity"] is not None else 0
         self._operation_mode = device_data["mode"] if \
             device_data["mode"] is not None else 1
         self._alarm = device_data["alarm"]
@@ -415,10 +415,12 @@ class SinopeLight(LightEntity):
         elif self._is_dimmable:
             brightness_pct = 101 # Sets the light to last known brightness.
         self._client.set_brightness(self._server, self._id, brightness_pct)
+        self._brightness_pct = brightness_pct
 
     def turn_off(self, **kwargs):
         """ Turn the light off. """
         self._client.set_brightness(self._server, self._id, 0)
+        self._brightness_pct = 0
 
     def set_keypad_lock(self, value):
         """ Lock or unlock device's keypad, lock = Locked, unlock = Unlocked """
