@@ -731,6 +731,7 @@ class SinopeThermostat(ClimateEntity):
             self._client.set_mode(self._server, self._id, self._type, SINOPE_MODE_AUTO)
         else:
             _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
+        self._operation_mode = hvac_mode
 
     def set_preset_mode(self, preset_mode):
         """Activate a preset."""
@@ -750,3 +751,4 @@ class SinopeThermostat(ClimateEntity):
             self.set_hvac_mode(self.hvac_mode)
         else:
             _LOGGER.error("Unable to set preset mode: %s.", preset_mode)
+        self._operation_mode = preset_mode
