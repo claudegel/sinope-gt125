@@ -298,7 +298,7 @@ class SinopeSwitch(SwitchEntity):
         """Turn the device on."""
         self._client.set_brightness(self._server, self._id, 100)
         self._brightness = 100
-        
+
     def turn_off(self, **kwargs):
         """Turn the device off."""
         self._client.set_brightness(self._server, self._id, 0)
@@ -308,7 +308,7 @@ class SinopeSwitch(SwitchEntity):
     def keypad (self):
         """Return the keypad state of the device"""
         return self._keypad
-      
+
     @property
     def event_timer (self):
         """Return the event timer state of the device"""
@@ -340,7 +340,7 @@ class SinopeSwitch(SwitchEntity):
 #    def today_energy_kwh(self):
 #        """Return the today total energy usage in kWh."""
 #        return self._today_energy_kwh
-    
+
     @property
     def is_standby(self):
         """Return true if device is in standby."""
