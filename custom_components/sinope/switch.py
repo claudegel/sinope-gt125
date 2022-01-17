@@ -237,7 +237,7 @@ class SinopeSwitch(SwitchEntity):
         _LOGGER.debug("Updating %s (%s sec): %s",
             self._name, elapsed, device_data)
         self._brightness = device_data["intensity"] if \
-                device_data["intensity"] is not None else 0.0
+                device_data["intensity"] is not None else 0
         self._operation_mode = device_data["mode"] if \
                 device_data["mode"] is not None else 1 #STATE_MANUAL
         self._alarm = device_data["alarm"]
@@ -297,10 +297,12 @@ class SinopeSwitch(SwitchEntity):
     def turn_on(self, **kwargs):
         """Turn the device on."""
         self._client.set_brightness(self._server, self._id, 100)
+        self._brightness = 100
         
     def turn_off(self, **kwargs):
         """Turn the device off."""
         self._client.set_brightness(self._server, self._id, 0)
+        self._brightness = 0
 
     @property
     def keypad (self):
