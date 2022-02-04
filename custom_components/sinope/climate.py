@@ -599,7 +599,7 @@ class SinopeThermostat(ClimateEntity):
     @property
     def preset_mode(self):
         """Return current preset mode."""
-        if self._operation_mode & SINOPE_BYPASS_FLAG == SINOPE_BYPASS_FLAG:
+        if self._operation_mode == SINOPE_BYPASS_FLAG:
             return PRESET_BYPASS
         elif self._operation_mode == SINOPE_MODE_AWAY:
             return PRESET_AWAY
