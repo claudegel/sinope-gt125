@@ -83,7 +83,7 @@ IMPLEMENTED_DEVICE_TYPES = [120] #power control device
 SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_KEYPAD_LOCK): cv.string,
+         vol.Required(ATTR_KEYPAD_LOCK): vol.In(["lock", "unlock"]),
     }
 )
 
