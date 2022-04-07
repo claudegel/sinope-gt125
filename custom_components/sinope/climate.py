@@ -160,14 +160,14 @@ SET_MAX_SETPOINT_SCHEMA = vol.Schema(
 SET_CLIMATE_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_KEYPAD_LOCK): cv.string,
+         vol.Required(ATTR_KEYPAD_LOCK): vol.In(["lock", "unlock"]),
     }
 )
 
 SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_DISPLAY): cv.string,
+         vol.Required(ATTR_DISPLAY): vol.In(["out", "set"]),
     }
 )
 
