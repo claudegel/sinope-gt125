@@ -37,9 +37,9 @@ Here is a list of currently supported devices. Basically, it's everything that c
 ## Prerequisite
 You need to connect your devices to your GT125 web gateway before being able to interact with them within Home Assistant. Please refer to the instructions manual of your device or visit [Neviweb support](https://www.sinopetech.com/blog/support-cat/plateforme-nevi-web/).
 
-There are two custom component giving you the choice to manage your devices via the neviweb portal or directly via your GT125 web gateway:
+There are two custom component giving you the choice to manage your devices via the neviweb portal or directly via your GT125 gateway:
 - [Neviweb](https://github.com/claudegel/sinope-1) custom component to manage your devices via neviweb portal.
-- [Sinope](https://github.com/claudegel/sinope-gt125) custom component to manage your devices directly via your GT125 web gateway.
+- [Sinope](https://github.com/claudegel/sinope-gt125) custom component to manage your devices directly via your GT125 gateway.
 
 You need to install only one of them but both can be used at the same time on HA.
 
