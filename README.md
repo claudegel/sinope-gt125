@@ -95,25 +95,24 @@ DK_KEY and MY_WEATHER parameter have been removed.
 
 ## First run
 
-To setup this custom_component, login via ssh to your Rpi and cd to the directory where you have copied the file. You don't need to edit the file device.py anymore but you will need to have the following data handy:
+To setup this custom_component, login via ssh to your Rpi and cd to the directory config/custom_components/sinope, where you have copied the file. You will need to have the following data handy:
 On start device.py will ask which GT125 you want to configure; server #1 or server #2
 - IP adress of the GT125,
 - GT125 device ID, written on the back of the device,
 - Port number to connect to the GT125. should be 4550 (default),
 if you have to configure two GT125 you need to have both data handy. With device.py you can run it many time to add devices to any of your two GT125. If you have only one GT125 just homit the parameter for the second one.
-- the required library crc8.py should be installed automatically. if not use this command: sudo pip3 install crc8. For python3.7,  use command: sudo python3.7 -m pip install crc8. For Hass.io you already run as root so you don't need sudo.
+- For Hass.io you already run as root so you don't need the sudo command.
+- To findout if python is installed run: python --version
 - For easyer install on Hass.io add the package SSH & Web Terminal. With this you don't need to install SSH and you'll be able to edit your config and run device.py directly in a web console inside of HA.
 - to install HACS via that console run the commande:
 `wget https://github.com/custom-components/hacs/archive/0.13.2.tar.gz`. Version number could be different.
 
-Execute the command: 'sudo python3 device.py' in console (for python3.7: 'sudo python3.7 device.py'). Sudo is required for file permission fix. In Hass.io you don't need sudo. Make sure you are in the config/custom_components/sinope directory when you run device.py or it won't run. Running device.py is required to install the data above and to get the Api_Key and later the deviceID for each Sinopé devices connected to your GT125. On first run, device.py ask for IP, Api ID and port number then send a ping request to the GT125. It will then ask you to push de "WEB" button on the GT125. This will give you the Api Key.
+Execute the command: 'python3 device.py' in console (for python3.10: 'python3.10 device.py'). Sudo is required for file permission fix. In Hass.io you don't need sudo. Make sure you are in the config/custom_components/sinope directory when you run device.py or it won't run. Running device.py is required to install the data above and to get the Api_Key and later the deviceID for each Sinopé devices connected to your GT125. On first run, device.py ask for IP, Api ID and port number then send a ping request to the GT125. It will then ask you to push de "WEB" button on the GT125. This will give you the Api Key.
 
-- Once you get your Api_Key, all data will be written in the config file '«config»/.storage/sinope_devices.json' or '«config»/.storage/sinope_devices_2.json' for the second GT125.
+- Once you get your Api_Key, all data will be written in the config file '«config»/.storage/sinope_devices.json' or '«config»/.storage/sinope_devices_2.json for the second GT125.
 - On the next run of device.py, you will start to get the device_id for all devices connected to your GT125.  See devices discovery bellow. Each time you run device.py it will ask for which Gt125, #1 or #2 you want to add devices.
 
-You're ready to setup your Sinopé devices.
-
-I've put lots of comment in the code so I think you will understand.
+You're ready to setup your Sinopé devices. I've put lots of comment in the code so I think you will understand.
 
 Main difference with Neviweb is that with the GT125 we don't have command to request all data and info 
 from one device at once. We need to issue one data read request for each info or data we want. 
@@ -248,7 +247,6 @@ My floorplan was created with inkscape and I use the same icon used for thermost
 - Explore how to automatically setup sensors in HA that will report the states of a specific device attribute (i.e. the wattage of a switch device)
 - Leave socket open to listen for events from devices state changes and answers from our data request. For now I open, send request, get result then close socket.
 - Detect events from light dimer and switch so we can receive state changes from the GT125 without polling the devices (faster).
-- Send time, date, sunset, sunrise once a day to each devices. Need to find out how to do that once a day at specific time.
 - Improve logging and debug.
 
 ## Contributing
