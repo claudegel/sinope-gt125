@@ -1,4 +1,4 @@
-This repository has been broken up into two.
+This repository has been split up into two.
 - sinope-gt125 for devices management via direct conection to the gt125 web gateway.
 - sinope-1 for devices management via [Neviweb](http://neviweb.com) portal.
 
