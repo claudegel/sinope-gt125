@@ -102,7 +102,7 @@ On start device.py will ask which GT125 you want to configure; server #1 or serv
 - Port number to connect to the GT125. should be 4550 (default),
 if you have to configure two GT125 you need to have both data handy. With device.py you can run it many time to add devices to any of your two GT125. If you have only one GT125 just homit the parameter for the second one.
 - For Hass.io you already run as root so you don't need the sudo command.
-- To findout if python is installed run: python --version
+- To findout if python is installed run: python --version in the terminal or type python and hit the TAB key. This should display python, python3 and python3-xx where xx is the version installed in HA.
 - For easyer install on Hass.io add the package SSH & Web Terminal. With this you don't need to install SSH and you'll be able to edit your config and run device.py directly in a web console inside of HA.
 - to install HACS via that console run the commande:
 `wget https://github.com/custom-components/hacs/archive/0.13.2.tar.gz`. Version number could be different.
