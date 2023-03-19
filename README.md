@@ -147,7 +147,7 @@ Look like the GT125 use a different deviceID then the Neviweb portal. Once you h
 ```
 For power switch devices, RM3250RF and RM3200RF, you need to push on the top blue ligth (with the wifi logo) to get the deviceID.
 Each time you will add a new device to your GT125 you will need to run that device.py setup.
-(https://github.com/claudegel/sinope-gt125/master/www/scan-device.jpg?raw=true "device discovery")
+(https://github.com/claudegel/sinope-gt125/blob/master/www/scan-device.jpg?raw=true "device discovery")
 
 ## Custom services
 Automations require services to be able to send commande. Ex. light.turn_on. For the Sinopé devices connected via GT125 it is possible to use custom services to send specific information to devices or to change some devices parameters. Those custom services can be accessed via development tool/services or can be used in automation:
