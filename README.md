@@ -1,7 +1,5 @@
-Update:
-
-To support [HACS](https://community.home-assistant.io/t/custom-component-hacs/121727), this repository has been broken up into two.
-- sinope-gt125 for devices management via direct conection to the gt125 web gateway
+This repository has been broken up into two.
+- sinope-gt125 for devices management via direct conection to the gt125 web gateway.
 - sinope-1 for devices management via [Neviweb](http://neviweb.com) portal.
 
 As a replacement for Dark Sky api, I've added support for Open Weather Map api
