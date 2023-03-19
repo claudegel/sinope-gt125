@@ -105,7 +105,7 @@ if you have to configure two GT125 you need to have both data handy. With device
 - To findout if python is installed run: python --version in the terminal or type python and hit the TAB key. This should display python, python3 and python3-xx where xx is the version installed in HA.
 - For easyer install on Hass.io add the package SSH & Web Terminal. With this you don't need to install SSH and you'll be able to edit your config and run device.py directly in a web console inside of HA.
 - to install HACS via that console run the commande:
-`wget https://github.com/custom-components/hacs/archive/1.3.0.tar.gz`. Version number could be different.
+`wget https://github.com/custom-components/hacs/archive/1.3.0.zip`. Version number could be different.
 
 Execute the command: 'python3 device.py' in console (for python3.10: 'python3.10 device.py'). Sudo is required for file permission fix. In Hass.io you don't need sudo. Make sure you are in the config/custom_components/sinope directory when you run device.py or it won't run. Running device.py is required to install the data above and to get the Api_Key and later the deviceID for each Sinopé devices connected to your GT125. On first run, device.py ask for IP, Api ID and port number then send a ping request to the GT125. It will then ask you to push de "WEB" button on the GT125. This will give you the Api Key.
 
