@@ -90,6 +90,16 @@ def setup(hass, hass_config) -> bool:
     
     _LOGGER.debug("Setting time zone as: %s", hass_config[DOMAIN].get(CONF_TIME_ZONE))
 
+    if len(hass_config[DOMAIN].get(CONF_ID)) != 16:
+        _LOGGER.debug("Error in configuration parameters for id, the lenght is incorrect.")
+    if len(hass_config[DOMAIN].get(CONF_API_KEY)) != 16:
+        _LOGGER.debug("Error in configuration parameters for api_key, the lenght is incorrect.")
+    if hass_config[DOMAIN].get(CONF_ID_2) is not None:
+        if len(hass_config[DOMAIN].get(CONF_ID_2)) != 16:
+            _LOGGER.debug("Error in configuration parameters for api_key2, the lenght is incorrect.")
+        if len(hass_config[DOMAIN].get(CONF_ID_2)) != 16:
+            _LOGGER.debug("Error in configuration parameters for id2, the lenght is incorrect.")
+
     discovery.load_platform(hass, 'climate', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'light', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'switch', DOMAIN, {}, hass_config)
