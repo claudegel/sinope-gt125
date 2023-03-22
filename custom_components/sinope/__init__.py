@@ -557,7 +557,7 @@ def send_request(self, serv, *arg): #data
         else:
             sock.sendall(login_request_2(self))
         if bytearray(sock.recv(1024)).hex()[0:14] == "55000c00110100": #Login ok
-            _LOGGER.debug("Sinope login = ok")
+#            _LOGGER.debug("Sinope login = ok")
             sock.sendall(arg[0])
             reply = sock.recv(1024)
             if crc_check(reply):  # receive acknowledge, check status and if we will receive more data
@@ -620,7 +620,6 @@ def send_request(self, serv, *arg): #data
 
 def login_request(self):
     login_data = "550012001001"+invert(self._api_id)+self._api_key
-    _LOGGER.debug("login data = %s, crc= %s", login_data, crc_count(bytes.fromhex(login_data)))
     login_crc = bytes.fromhex(crc_count(bytes.fromhex(login_data)))
     return bytes.fromhex(login_data)+login_crc
 
