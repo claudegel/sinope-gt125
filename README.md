@@ -89,7 +89,7 @@ sinope:
   my_city: "<the nearest city>" # ex. 'Montreal', needed to get sunrise and sunset hours for your location. <Optional>
   scan_interval: 120 #you can go down to 60 if you want depending on how many devices you have to update. Default set to 180 <Optional>
   ```
-DK_KEY and MY_WEATHER parameter have been removed.
+Make sure the parameters are between quotation mark "" except for the scan_interval which is a number. DK_KEY and MY_WEATHER parameter have been removed.
 
 ## First run
 
