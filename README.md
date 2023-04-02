@@ -2,8 +2,6 @@ This repository has been split up into two.
 - sinope-gt125 for devices management via direct conection to the gt125 web gateway.
 - sinope-1 for devices management via [Neviweb](http://neviweb.com) portal.
 
-As a replacement for Dark Sky api, I've added support for Open Weather Map api
-
 If you already use this custom_component, make a backup of your file devices.json before first update via HACS. Devices.json will be removed. You'll need to copy your devices data to config/.storage/sinope_devices.json after first run of device.py (see below).
 
 # Home Assistant Sinope Custom Components (sinope-gt125)
