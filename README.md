@@ -206,7 +206,7 @@ Automation example:
           entity_id: climate.sinope_climate_office  ## you can add many devices to be updated at once or a group of devices
           outside_temperature: "{{ state_attr('weather.openweathermap', 'temperature') }}"
    ```
-   you can use any temperature provider; Dark Sky, Openweathermap, even an ouside sensor that give you your local temperature.
+   you can use any temperature provider; Openweathermap, Environment canada, even an ouside sensor that give you your local temperature.
    
 ## Customization
 Install  [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component via HACS and add the following in your code:
