@@ -319,6 +319,7 @@ class SinopeSwitch(SwitchEntity):
                 'operation_mode': self.operation_mode,
                 'rssi': self._rssi,
                 'wattage': self._wattage,
+                'current_power_w': self._current_power_w,
                 'event timer': self._event_timer,
                 'keypad': self._keypad,
                 'server': self._server,
