@@ -34,7 +34,7 @@ and gave credit "From the PyPy project" and the link
 import sys
 
 __author__="Nicco Kunzmann"
-__version__="0.1.0"
+__version__="0.2.0"
 
 PY2 = sys.version_info[0] == 2
 
@@ -80,6 +80,7 @@ class crc8(object):
     def __init__(self, initial_string=b'', initial_start=0x00):
         """Create a new crc8 hash instance."""
         self._sum = initial_start
+        self._initial_start = initial_start
         self._update(initial_string)
 
     def update(self, bytes_):
@@ -147,5 +148,9 @@ class crc8(object):
         crc = crc8()
         crc._sum = self._sum
         return crc
+
+    def reset(self):
+        """Resets the hash object to its initial state."""
+        self._sum = self._initial_start
 
 __all__ = ['crc8']
