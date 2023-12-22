@@ -10,10 +10,7 @@ import os
 import pwd
 import grp
 
-if os.path.isdir("/home/homeassistant/.homeassistant"):
-  CONFIG = "/home/homeassistant/.homeassistant/.storage/"
-else:
-  CONFIG = "/config/.storage/"
+CONFIG = "/config/.storage/"
 
 def invert(id):
     """The Api_ID must be sent in reversed order"""
