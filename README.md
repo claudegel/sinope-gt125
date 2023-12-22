@@ -48,7 +48,7 @@ There are two methods to install this custom component:
   - Download the zip file of this repository using the top right, green download button.
   - Extract the zip file on your computer, then copy the entire `custom_components` folder inside your Home Assistant «config» directory (where you can find your `configuration.yaml` file).
     - Hassbian: /home/homeassistant/.homeassistant/
-    - Hass.io: /config/
+    - homeassistant-supervised (Hass.io): /config/
   - Your «config» directory should look like this:
 
     ```
@@ -93,19 +93,19 @@ DK_KEY and MY_WEATHER parameter have been removed.
 
 ## First run
 
-To setup this custom_component, login via ssh to your Rpi and cd to the directory config/custom_components/sinope, where you have copied the file. You will need to have the following data handy:
+To setup this custom_component, login via ssh to your Rpi and cd to the directory config/custom_components/sinope, where you have copied the file. Or use the package «advanced ssh & Web Terminal» to get a terminal inside HA (prefered method). You will need to have the following data handy:
 On start device.py will ask which GT125 you want to configure; server #1 or server #2
 - IP adress of the GT125,
 - GT125 device ID, written on the back of the device,
 - Port number to connect to the GT125. should be 4550 (default),
 if you have to configure two GT125 you need to have both data handy. With device.py you can run it many time to add devices to any of your two GT125. If you have only one GT125 just homit the parameter for the second one.
-- For Hass.io you already run as root so you don't need the sudo command.
+- For homeassistant-supervised (Hass.io) you already run as root so you don't need the sudo command.
 - To findout if python is installed run: python --version in the terminal or type python and hit the TAB key. This should display python, python3 and python3-xx where xx is the version installed in HA.
-- For easyer install on Hass.io add the package SSH & Web Terminal. With this you don't need to install SSH and you'll be able to edit your config and run device.py directly in a web console inside of HA.
+- For easyer install on homeassistant-supervised (Hass.io) add the package «advanced ssh & Web Terminal». With this you don't need to install SSH and you'll be able to edit your config and run device.py directly in a web console inside of HA.
 - to install HACS via that console run the commande:
 `wget https://github.com/custom-components/hacs/archive/1.3.0.zip`. Version number could be different.
 
-Execute the command: 'python3 device.py' in console (for python3.10: 'python3.10 device.py'). Sudo is required for file permission fix. In Hass.io you don't need sudo. Make sure you are in the config/custom_components/sinope directory when you run device.py or it won't run. Running device.py is required to install the data above and to get the Api_Key and later the deviceID for each Sinopé devices connected to your GT125. On first run, device.py ask for IP, Api ID and port number then send a ping request to the GT125. It will then ask you to push de "WEB" button on the GT125. This will give you the Api Key.
+Execute the command: 'python3 device.py' in console (for python3.10: 'python3.10 device.py'). Sudo is required for file permission fix. In homeassistant-supervised (Hass.io) you don't need sudo. Make sure you are in the config/custom_components/sinope directory when you run device.py or it won't run. Running device.py is required to install the data above and to get the Api_Key and later the deviceID for each Sinopé devices connected to your GT125. On first run, device.py ask for IP, Api ID and port number then send a ping request to the GT125. It will then ask you to push de "WEB" button on the GT125. This will give you the Api Key.
 
 - Once you get your Api_Key, all data will be written in the config file '«config»/.storage/sinope_devices.json' or '«config»/.storage/sinope_devices_2.json for the second GT125.
 - On the next run of device.py, you will start to get the device_id for all devices connected to your GT125.  See devices discovery bellow. Each time you run device.py it will ask for which Gt125, #1 or #2 you want to add devices.
