@@ -43,7 +43,7 @@ from .const import (
 
 #REQUIREMENTS = ['PY_Sinope==0.1.7']
 REQUIREMENTS = ['crc8==0.1.0']
-VERSION = '1.6.0'
+VERSION = '1.6.1'
 
 DATA_DOMAIN = 'data_' + DOMAIN
 
@@ -77,10 +77,7 @@ def setup(hass, hass_config) -> bool:
     hass.data[DATA_DOMAIN] = data
 
     global CONFDIR
-    if os.path.isdir("/home/homeassistant/.homeassistant"):
-      CONFDIR = "/home/homeassistant/.homeassistant/.storage/"
-    else:
-      CONFDIR = "/config/.storage/"
+    CONFDIR = "/config/.storage/"
  
     _LOGGER.debug("Setting config location to: %s", CONFDIR)
 

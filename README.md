@@ -93,7 +93,7 @@ DK_KEY and MY_WEATHER parameter have been removed.
 
 ## First run
 
-To setup this custom_component, login via ssh to your Rpi and cd to the directory config/custom_components/sinope, where you have copied the file. Or use the package «advanced ssh & Web Terminal» to get a terminal inside HA (prefered method). You will need to have the following data handy:
+To setup this custom_component, login via ssh to your Rpi and cd to the directory config/custom_components/sinope, where you have copied the files. Or use the package «advanced ssh & Web Terminal» to get a terminal inside HA (prefered method). You will need to have the following data handy:
 On start device.py will ask which GT125 you want to configure; server #1 or server #2
 - IP adress of the GT125,
 - GT125 device ID, written on the back of the device,
