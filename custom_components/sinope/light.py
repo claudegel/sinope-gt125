@@ -23,7 +23,7 @@ from homeassistant.components.light import (
     LightEntity,
     ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT,
-    SUPPORT_BRIGHTNESS,
+    ColorMode,
 )
 
 from homeassistant.core import (
@@ -72,9 +72,6 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-
-SUPPORT_FLAGS = (SUPPORT_KEYPAD_LOCK | SUPPORT_EVENT_TIMER)
-DIMMER_SUPPORT_FLAGS = (SUPPORT_KEYPAD_LOCK | SUPPORT_EVENT_TIMER | SUPPORT_BRIGHTNESS)
 
 DEFAULT_NAME = 'sinope'
 DATA_DOMAIN = 'data_' + DOMAIN
@@ -319,13 +316,13 @@ class SinopeLight(LightEntity):
         self._led_off = str(device_info[2]["intensity_off"])+","+str(device_info[2]["red_off"])+","+str(device_info[2]["green_off"])+","+str(device_info[2]["blue_off"])
         return
 #        _LOGGER.warning("Cannot update %s: %s", self._name, device_info)
-        
+
     @property
-    def supported_features(self):
-        """Return the list of supported features."""
+    def supported_color_modes(self):
+        """Return the list of supported colorMode features."""
         if self._is_dimmable:
-            return DIMMER_SUPPORT_FLAGS
-        return SUPPORT_FLAGS
+            return ColorMode.BRIGHTNESS
+        return ColorMode.ONOFF
 
     @property
     def server(self):

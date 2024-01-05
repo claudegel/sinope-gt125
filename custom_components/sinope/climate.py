@@ -22,6 +22,9 @@ from . import (
 
 from homeassistant.components.climate import (
     ClimateEntity,
+    ClimateEntityFeature,
+    HVACAction,
+    HVACMode,
     PLATFORM_SCHEMA,
 )
 
@@ -33,23 +36,14 @@ from homeassistant.helpers import (
 )
 
 from homeassistant.components.climate.const import (
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
-    HVAC_MODE_AUTO,
-    SUPPORT_TARGET_TEMPERATURE,
-    SUPPORT_PRESET_MODE,
     PRESET_AWAY,
     PRESET_NONE,
-    CURRENT_HVAC_HEAT,
-    CURRENT_HVAC_IDLE,
-    CURRENT_HVAC_OFF,
 )
 
 from homeassistant.const import (
     ATTR_ENTITY_ID,
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
     ATTR_TEMPERATURE,
+    UnitOfTemperature,
 )
 
 from datetime import timedelta
@@ -96,7 +90,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE | SUPPORT_OUTSIDE_TEMPERATURE | SUPPORT_KEYPAD_LOCK | SUPPORT_SECOND_DISPLAY)
+SUPPORT_FLAGS = (ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE | SUPPORT_OUTSIDE_TEMPERATURE | SUPPORT_KEYPAD_LOCK | SUPPORT_SECOND_DISPLAY)
 
 DEFAULT_NAME = "sinope"
 DATA_DOMAIN = 'data_' + DOMAIN
@@ -117,9 +111,9 @@ SINOPE_BYPASSABLE_MODES = [
 SINOPE_MODE_AUTO_BYPASS = (SINOPE_MODE_AUTO | SINOPE_BYPASS_FLAG)
 
 SUPPORTED_HVAC_MODES = [
-    HVAC_MODE_OFF,
-    HVAC_MODE_AUTO,
-    HVAC_MODE_HEAT,
+    HVACMode.OFF,
+    HVACMode.AUTO,
+    HVACMode.HEAT,
 ]
 
 PRESET_MODES = [
@@ -533,12 +527,12 @@ class SinopeThermostat(ClimateEntity):
     @property
     def temperature_unit(self):
         """Return the unit of measurement."""
-        return TEMP_CELSIUS
+        return UnitOfTemperature.CELSIUS
 
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement."""
-        return TEMP_CELSIUS
+        return UnitOfTemperature.CELSIUS
 
     @property
     def keypad(self):
@@ -564,12 +558,12 @@ class SinopeThermostat(ClimateEntity):
     def hvac_mode(self):
         """Return current operation"""
         if self._operation_mode == SINOPE_MODE_OFF:
-            return HVAC_MODE_OFF
+            return HVACMode.OFF
         elif self._operation_mode in [SINOPE_MODE_AUTO, 
                                       SINOPE_MODE_AUTO_BYPASS]:
-            return HVAC_MODE_AUTO
+            return HVACMode.AUTO
         else:
-            return HVAC_MODE_HEAT
+            return HVACMode.HEAT
 
     @property
     def hvac_modes(self):
@@ -610,11 +604,11 @@ class SinopeThermostat(ClimateEntity):
     def hvac_action(self):
         """Return current HVAC action."""
         if self._operation_mode == SINOPE_MODE_OFF:
-            return CURRENT_HVAC_OFF
+            return HVACAction.OFF
         elif self._heat_level == 0:
-            return CURRENT_HVAC_IDLE
+            return HVACAction.IDLE
         else:
-            return CURRENT_HVAC_HEAT
+            return HVACAction.HEATING
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
@@ -723,11 +717,11 @@ class SinopeThermostat(ClimateEntity):
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
         self._client.send_time(self._server, self._id)
-        if hvac_mode == HVAC_MODE_OFF:
+        if hvac_mode == HVACMode.OFF:
             self._client.set_mode(self._server, self._id, self._type, SINOPE_MODE_OFF)
-        elif hvac_mode == HVAC_MODE_HEAT:
+        elif hvac_mode == HVACMode.HEAT:
             self._client.set_mode(self._server, self._id, self._type, SINOPE_MODE_MANUAL)
-        elif hvac_mode == HVAC_MODE_AUTO:
+        elif hvac_mode == HVACMode.AUTO:
             self._client.set_mode(self._server, self._id, self._type, SINOPE_MODE_AUTO)
         else:
             _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
