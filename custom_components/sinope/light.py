@@ -322,8 +322,7 @@ class SinopeLight(LightEntity):
         """Return the list of supported colorMode features."""
         if self._is_dimmable:
             return ColorMode.BRIGHTNESS
-        else:
-            return ColorMode.ONOFF
+        return ColorMode.ONOFF
 
     @property
     def server(self):
