@@ -326,6 +326,7 @@ class SinopeLight(LightEntity):
 
     @property
     def color_mode(self):
+        """ Set ColorMode """
         if self._is_dimmable:
             return ColorMode.BRIGHTNESS
         return ColorMode.ONOFF
