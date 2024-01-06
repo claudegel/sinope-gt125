@@ -321,8 +321,8 @@ class SinopeLight(LightEntity):
     def supported_color_modes(self):
         """Return the list of supported colorMode features."""
         if self._is_dimmable:
-            return ColorMode.BRIGHTNESS
-        return ColorMode.ONOFF
+            return {ColorMode.BRIGHTNESS}
+        return {ColorMode.ONOFF}
 
     @property
     def color_mode(self):
@@ -363,7 +363,9 @@ class SinopeLight(LightEntity):
     @property
     def brightness(self):
         """Return intensity of light"""
-        return brightness_from_percentage(self._brightness_pct)
+        if self._is_dimmable:
+            return brightness_from_percentage(self._brightness_pct)
+        return None
 
     @property
     def is_on(self):
