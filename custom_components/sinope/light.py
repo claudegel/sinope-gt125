@@ -20,10 +20,10 @@ from . import (
 )
 
 from homeassistant.components.light import (
-    LightEntity,
     ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT,
     ColorMode,
+    LightEntity,
 )
 
 from homeassistant.core import (
@@ -320,6 +320,12 @@ class SinopeLight(LightEntity):
     @property
     def supported_color_modes(self):
         """Return the list of supported colorMode features."""
+        if self._is_dimmable:
+            return ColorMode.BRIGHTNESS
+        return ColorMode.ONOFF
+
+    @property
+    def color_mode(self):
         if self._is_dimmable:
             return ColorMode.BRIGHTNESS
         return ColorMode.ONOFF
