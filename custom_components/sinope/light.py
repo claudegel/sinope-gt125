@@ -134,10 +134,10 @@ SET_LIGHT_BASIC_DATA_SCHEMA = vol.Schema(
     }
 )
 
-def setup_platform(
+async def async_setup_platform(
     hass: HomeAssistantType,
     config_entry,
-    add_entities,
+    async_add_entities,
     discovery_info = None,
 ) -> None:
     """Set up the sinope light."""
@@ -190,7 +190,7 @@ def setup_platform(
                 break
             i = i + 1
 
-    add_entities(entities, True)
+    async_add_entities(entities, True)
 
     def set_light_keypad_lock_service(service):
         """ lock/unlock keypad device"""
@@ -413,7 +413,7 @@ class SinopeLight(LightEntity):
     # state. So we force the set_brightness each time.
 
     def turn_on(self, **kwargs):
-        """ Turn the light on. """
+        """ Turn the light on or set brightness. """
         brightness_pct = 100
         if kwargs.get(ATTR_BRIGHTNESS):
             brightness_pct = \

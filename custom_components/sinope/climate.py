@@ -189,10 +189,10 @@ SET_CLIMATE_BASIC_DATA_SCHEMA = vol.Schema(
     }
 )
 
-def setup_platform(
+async def async_setup_platform(
     hass: HomeAssistantType,
     config_entry,
-    add_entities,
+    async_add_entities,
     discovery_info = None,
 ) -> None:
     """Set up the sinope thermostats."""
@@ -239,7 +239,7 @@ def setup_platform(
                 break
             i = i + 1
 
-    add_entities(entities, True)
+    async_add_entities(entities, True)
 
     def set_outside_temperature_service(service):
         """ send local outside temperature to thermostats"""
@@ -503,6 +503,7 @@ class SinopeThermostat(ClimateEntity):
                 'backlight_idle': self._backlight_idle,
                 'display2': self._second_display,
                 'heat_level': self._heat_level,
+                'pi_heating_demand': self._heat_level,
                 'rssi': self._rssi,
                 'wattage': self._wattage,
                 'wattage_override': self._wattage_override,

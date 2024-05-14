@@ -100,10 +100,10 @@ SET_SWITCH_BASIC_DATA_SCHEMA = vol.Schema(
     }
 )
 
-def setup_platform(
+async def async_setup_platform(
     hass: HomeAssistantType,
     config_entry,
-    add_entities,
+    async_add_entities,
     discovery_info = None,
 ) -> None:
     """Set up the Sinope switch."""
@@ -150,7 +150,7 @@ def setup_platform(
                 break
             i = i + 1
 
-    add_entities(entities, True)
+    async_add_entities(entities, True)
 
     def set_switch_keypad_lock_service(service):
         """ lock/unlock keypad device"""
