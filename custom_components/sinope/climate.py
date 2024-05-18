@@ -54,7 +54,6 @@ from homeassistant.core import (
 
 from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.components.sensor import SensorDeviceClass
 
 from homeassistant.helpers import (
@@ -190,8 +189,8 @@ SET_CLIMATE_BASIC_DATA_SCHEMA = vol.Schema(
 )
 
 async def async_setup_platform(
-    hass: HomeAssistantType,
-    config_entry,
+    hass,
+    config,
     async_add_entities,
     discovery_info = None,
 ) -> None:
