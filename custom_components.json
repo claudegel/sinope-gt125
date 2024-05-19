@@ -1,6 +1,6 @@
 {
    "sinope": {
-        "version": "1.6.4",
+        "version": "1.6.5",
         "local_location": "/custom_components/sinope/__init__.py",
         "remote_location": "https://github.com/claudegel/sinope-gt125/tree/master/custom_components/__init__.py",
         "visit_repo": "https://github.com/claudegel/sinope-gt125",
