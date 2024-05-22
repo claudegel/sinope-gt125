@@ -630,12 +630,12 @@ class SinopeThermostat(ClimateEntity):
 
     def turn_on(self):
         """Turn the thermostat to HVACMode.heat."""
-        self._client.set_mode(self._server, self._id, , self._type, SINOPE_MODE_AUTO)
+        self._client.set_mode(self._server, self._id, self._type, SINOPE_MODE_AUTO)
         self._operation_mode = SINOPE_MODE_AUTO
 
     def turn_off(self):
         """Turn the thermostat to HVACMode.off."""
-        self._client.set_mode(self._server, self._id, , self._type, SINOPE_MODE_OFF)
+        self._client.set_mode(self._server, self._id, self._type, SINOPE_MODE_OFF)
         self._operation_mode = SINOPE_MODE_OFF
 
     def set_temperature(self, **kwargs):
