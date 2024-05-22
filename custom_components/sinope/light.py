@@ -45,7 +45,6 @@ from homeassistant.helpers import (
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.helpers import (
     entity_platform,
     service,
@@ -135,8 +134,8 @@ SET_LIGHT_BASIC_DATA_SCHEMA = vol.Schema(
 )
 
 async def async_setup_platform(
-    hass: HomeAssistantType,
-    config_entry,
+    hass,
+    config,
     async_add_entities,
     discovery_info = None,
 ) -> None:
