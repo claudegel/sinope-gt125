@@ -89,7 +89,15 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-SUPPORT_FLAGS = (ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE | SUPPORT_OUTSIDE_TEMPERATURE | SUPPORT_KEYPAD_LOCK | SUPPORT_SECOND_DISPLAY)
+SUPPORT_FLAGS = (
+    ClimateEntityFeature.TARGET_TEMPERATURE
+    | ClimateEntityFeature.PRESET_MODE
+    | ClimateEntityFeature.TURN_OFF
+    | ClimateEntityFeature.TURN_ON
+    | SUPPORT_OUTSIDE_TEMPERATURE
+    | SUPPORT_KEYPAD_LOCK
+    | SUPPORT_SECOND_DISPLAY
+)
 
 DEFAULT_NAME = "sinope"
 DATA_DOMAIN = 'data_' + DOMAIN
@@ -390,6 +398,9 @@ async def async_setup_platform(
 class SinopeThermostat(ClimateEntity):
     """Implementation of a Sinope thermostat."""
 
+    _enable_turn_on_off_backwards_compatibility = False
+    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+
     def __init__(self, data, device_id, name, device_type, server):
         """Initialize."""
         self._name = name
@@ -609,6 +620,23 @@ class SinopeThermostat(ClimateEntity):
             return HVACAction.IDLE
         else:
             return HVACAction.HEATING
+
+    @property
+    def is_on(self):
+        """Return True if mode = HVACMode.HEAT or HVACMode.AUTO."""
+        if self._operation_mode == SINOPE_MODE_MANUAL or self._operation_mode == SINOPE_MODE_AUTO or self._operation_mode == SINOPE_MODE_AWAY:
+            return True
+        return False
+
+    def turn_on(self):
+        """Turn the thermostat to HVACMode.heat."""
+        self._client.set_mode(self._server, self._id, , self._type, SINOPE_MODE_AUTO)
+        self._operation_mode = SINOPE_MODE_AUTO
+
+    def turn_off(self):
+        """Turn the thermostat to HVACMode.off."""
+        self._client.set_mode(self._server, self._id, , self._type, SINOPE_MODE_OFF)
+        self._operation_mode = SINOPE_MODE_OFF
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
