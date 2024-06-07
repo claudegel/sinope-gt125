@@ -5,6 +5,7 @@ For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
 import asyncio
+import aiofiles
 import json
 import logging
 import os
@@ -109,10 +110,10 @@ async def async_setup_platform(
     data = hass.data[sinope.DATA_DOMAIN]
     CONF_file = CONFDIR + "sinope_devices.json"
     dev_list = []
-    with await hass.async_add_executor_job(open, CONF_file) as f:
-        for line in f:
+    async with aiofiles.open(CONF_file) as f:
+        async for line in f:
             dev_list.append(json.loads(line))         
-    f.close()
+    await f.close()
     i = 2
     tot = len(dev_list)
     entities = []
@@ -131,10 +132,10 @@ async def async_setup_platform(
     if os.path.exists(CONFDIR+'sinope_devices_2.json') == True:
         CONF_file_2 = CONFDIR + "sinope_devices_2.json"
         dev_list_2 = []
-        with await hass.async_add_executor_job(open, CONF_file_2) as g:
-            for line in g:
+        async with aiofiles.open(CONF_file_2) as g:
+            async for line in g:
                 dev_list_2.append(json.loads(line))         
-        g.close()
+        await g.close()
         i = 2
         tot2 = len(dev_list_2)
         for a in dev_list_2:
