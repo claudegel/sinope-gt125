@@ -143,7 +143,7 @@ async def async_setup_platform(
     data = hass.data[sinope.DATA_DOMAIN]
     CONF_file = CONFDIR + "sinope_devices.json"
     dev_list = []
-    with open(CONF_file) as f:
+    with await hass.async_add_executor_job(open, CONF_file) as f:
         for line in f:
             dev_list.append(json.loads(line))         
     f.close()
@@ -168,7 +168,7 @@ async def async_setup_platform(
     if os.path.exists(CONFDIR+'sinope_devices_2.json') == True:
         CONF_file_2 = CONFDIR + "sinope_devices_2.json"
         dev_list_2 = []
-        with open(CONF_file_2) as g:
+        with await hass.async_add_executor_job(open, CONF_file_2) as g:
             for line in g:
                 dev_list_2.append(json.loads(line))         
         g.close()
