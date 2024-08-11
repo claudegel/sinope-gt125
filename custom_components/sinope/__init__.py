@@ -43,7 +43,7 @@ from .const import (
 
 #REQUIREMENTS = ['PY_Sinope==0.1.7']
 REQUIREMENTS = ['crc8==0.1.0']
-VERSION = '1.6.8'
+VERSION = '1.6.9'
 
 DATA_DOMAIN = 'data_' + DOMAIN
 

@@ -34,7 +34,7 @@ and gave credit "From the PyPy project" and the link
 import sys
 
 __author__="Nicco Kunzmann"
-__version__="0.2.0"
+__version__="0.2.1"
 
 PY2 = sys.version_info[0] == 2
 
@@ -91,6 +91,8 @@ class crc8(object):
         to m.update(a+b).
         """
         self._update(bytes_)
+
+        return self
 
     def digest(self):
         """Return the digest of the bytes passed to the update() method so far.
@@ -152,5 +154,7 @@ class crc8(object):
     def reset(self):
         """Resets the hash object to its initial state."""
         self._sum = self._initial_start
+
+        return self
 
 __all__ = ['crc8']
