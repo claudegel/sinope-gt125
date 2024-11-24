@@ -323,7 +323,7 @@ class SinopeSwitch(SwitchEntity):
                 'event timer': self._event_timer,
                 'keypad': self._keypad,
                 'server': self._server,
-                'id': self._id,
+                'id': str(self._id),
                 }
 
     @property

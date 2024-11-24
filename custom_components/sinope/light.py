@@ -358,7 +358,7 @@ class SinopeLight(LightEntity):
             "identifiers": {(DOMAIN, self.unique_id)},
             "name": self.name,
             "manufacturer": "Sinopé",
-            "device_id": self._id,
+            "device_id": str(self._id),
         }
 
     @property
