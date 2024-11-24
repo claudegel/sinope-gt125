@@ -519,7 +519,7 @@ class SinopeThermostat(ClimateEntity):
                 'wattage': self._wattage,
                 'wattage_override': self._wattage_override,
                 'server': self._server,
-                'id': self._id}
+                'id': str(self._id)}
 
     @property
     def supported_features(self):
@@ -527,12 +527,12 @@ class SinopeThermostat(ClimateEntity):
         return SUPPORT_FLAGS
 
     @property
-    def min_temp(self):
+    def min_temp(self) -> float:
         """Return the min temperature."""
         return self._min_temp
 
     @property
-    def max_temp(self):
+    def max_temp(self) -> float:
         """Return the max temperature."""
         return self._max_temp
 
@@ -583,17 +583,17 @@ class SinopeThermostat(ClimateEntity):
         return SUPPORTED_HVAC_MODES
 
     @property
-    def current_temperature(self):
+    def current_temperature(self) -> float:
         """Return the current temperature."""
         return self._cur_temp
 
     @property
-    def target_temperature (self):
+    def target_temperature(self) -> float:
         """Return the temperature we try to reach."""
         return self._target_temp
 
     @property
-    def outside_temperature (self):
+    def outside_temperature(self) -> float:
         """Return the outside temperature we try to set."""
         return self._outside_temperature
 
