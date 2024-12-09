@@ -629,6 +629,26 @@ class SinopeThermostat(ClimateEntity):
             return True
         return False
 
+    @property
+    def swing_mode(self) -> str | None:
+        """Return the fan vertical swing setting."""
+        return None
+
+    @property
+    def swing_modes(self) -> list[str] | None:
+        """Return availables vertical swing modes."""
+        return None
+
+    @property
+    def swing_horizontal_mode(self) -> str | None:
+        """Return the fan swing setting."""
+        return None
+
+    @property
+    def swing_horizontal_modes(self) -> list[str] | None:
+        """Return available horizontal swing modes"""
+        return None
+
     def turn_on(self):
         """Turn the thermostat to HVACMode.heat."""
         self._client.set_mode(self._server, self._id, self._type, SINOPE_MODE_AUTO)
