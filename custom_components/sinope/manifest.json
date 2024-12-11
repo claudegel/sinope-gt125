@@ -6,4 +6,5 @@
   "codeowners": ["@claudegel"],
   "requirements": ["crc8==0.1.0"],
   "version": "1.7.1"
+  "homeassistant": "2024.12.1"
 }
