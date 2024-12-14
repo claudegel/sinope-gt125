@@ -1,10 +1,12 @@
 {
   "domain": "sinope",
   "name": "Sinope GT125",
-  "documentation": "https://github.com/claudegel/sinope-gt125",
-  "dependencies": [],
   "codeowners": ["@claudegel"],
+  "documentation": "https://github.com/claudegel/sinope-gt125",
+  "issue_tracker": "https://github.com/claudegel/sinope-gt125/issues",
+  "dependencies": [],
   "requirements": ["crc8==0.1.0"],
   "version": "1.7.1"
   "homeassistant": "2024.12.1"
+  "iot_class": "local_polling"
 }
