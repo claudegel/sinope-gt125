@@ -5,7 +5,7 @@
   "documentation": "https://github.com/claudegel/sinope-gt125",
   "issue_tracker": "https://github.com/claudegel/sinope-gt125/issues",
   "dependencies": [],
-  "requirements": ["crc8==0.1.0"],
+  "requirements": ["crc8==0.2.1"],
   "version": "1.7.2"
   "homeassistant": "2024.12.1"
   "iot_class": "local_polling"
