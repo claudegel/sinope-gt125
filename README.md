@@ -63,6 +63,7 @@ There are two methods to install this custom component:
           light.py
           switch.py
           climate.py
+          helpers.py
           device.py
           const.py
           services.yaml
@@ -164,18 +165,20 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - sinope.set_light_basic_data, this service send date, time, sunset and sunrize data to each devices for accurate operations. It need to be sent once a day for proper operation via automation. You need to specify one devices only and all devices will be updated. Needed to be done on only one devices, climate, light or switch.
 - sinope.set_switch_basic_data, this service send date, time, sunset and sunrize data to each devices for accurate operations. It need to be sent once a day for proper operation via automation. You need to specify one devices only and all devices will be updated. Needed to be done on only one devices, climate, light or switch.
 The last three services take into account the time zone set in HA or use the default time zone America/Toronto. They also manage the time changes for DST.
-## Troubleshooting
-home-assistant.log is no longer available and it have been replaced by a file sinope_log.txt in your config directory. It contain only logging about this custom_component. New logger create an empty file at startup and do a log rotation each time le file reach 2 meg in size.
 
-To have a maximum of information to help you, please provide a snippet of your sinope_log.txt file. I've added some debug log messages that could help diagnose the problem.
+## Troubleshooting
+
+home-assistant.log is no longer available and it have been replaced by a file sinope_log.txt in your config directory. It contain only logging about 
+this custom_component. New logger create an empty file at startup and do a log rotation each time le file reach 2 meg in size.
+
+To have a maximum of information to help you, please provide a snippet of your sinope_log.txt file. I've added some debug log messages that 
+could help diagnose the problem.
 
 You can also post in one of those threads to get help:
 - https://community.home-assistant.io/t/sinope-line-voltage-thermostats/17157
 - https://community.home-assistant.io/t/adding-support-for-sinope-light-switch-and-dimmer/38835
 
 ### Turning on Sinope debug messages in `home-assistant.log` file
-
-To have a maximum of information to help you, please provide a snippet of your `home-assistant.log` file. I've added some debug log messages that could help diagnose the problem.
 
 Add thoses lines to your `configuration.yaml` file
    ```yaml
