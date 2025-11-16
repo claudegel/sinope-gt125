@@ -39,11 +39,31 @@ from .const import (
     CONF_SERVER,
     CONF_SERVER_2,
     CONF_MY_CITY,
+    STARTUP_MESSAGE,
+    VERSION,
+)
+from .helpers import setup_logger
+
+DEFAULT_LOG_MAX_BYTES = 2 * 1024 * 1024
+DEFAULT_LOG_BACKUP_COUNT = 3
+DEFAULT_LOG_RESET_ON_START = True
+LOGGER_NAME = "custom_components.sinope"
+
+LOG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../sinope_log.txt"))
+
+existing_logger = logging.getLogger(LOGGER_NAME)
+level_name = logging.getLevelName(existing_logger.level)
+
+setup_logger(
+    name=LOGGER_NAME,
+    log_path=LOG_PATH,
+    level=level_name,
+    max_bytes=DEFAULT_LOG_MAX_BYTES,
+    backup_count=DEFAULT_LOG_BACKUP_COUNT,
+    reset_on_start=DEFAULT_LOG_RESET_ON_START
 )
 
-#REQUIREMENTS = ['PY_Sinope==0.1.7']
 REQUIREMENTS = ['crc8==0.2.1']
-VERSION = '1.7.3'
 
 DATA_DOMAIN = 'data_' + DOMAIN
 
@@ -73,18 +93,20 @@ CONFIG_SCHEMA = vol.Schema({
 
 def setup(hass, hass_config) -> bool:
     """Setup sinope."""
+    _LOGGER.info(STARTUP_MESSAGE)
+
     data = SinopeData(hass_config[DOMAIN])
     hass.data[DATA_DOMAIN] = data
 
     global CONFDIR
     CONFDIR = "/config/.storage/"
- 
+
     _LOGGER.debug("Setting config location to: %s", CONFDIR)
 
     global SCAN_INTERVAL
     SCAN_INTERVAL = hass_config[DOMAIN].get(CONF_SCAN_INTERVAL)
     _LOGGER.debug("Setting scan interval to: %s", SCAN_INTERVAL)
-    
+
     _LOGGER.debug("Setting time zone as: %s", hass_config[DOMAIN].get(CONF_TIME_ZONE))
 
     if len(hass_config[DOMAIN].get(CONF_ID)) != 16:
