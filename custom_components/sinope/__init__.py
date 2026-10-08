@@ -44,6 +44,10 @@ from .const import (
 )
 from .helpers import setup_logger
 
+CONNECT_TIMEOUT = 3
+RESPONSE_TIMEOUT = 10
+MAX_ATTEMPTS = 3
+RETRY_DELAY = 2
 DEFAULT_LOG_MAX_BYTES = 2 * 1024 * 1024
 DEFAULT_LOG_BACKUP_COUNT = 3
 DEFAULT_LOG_RESET_ON_START = True
@@ -575,20 +579,19 @@ def send_request(self, serv, *arg): # data
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Prevent an unavailable GT125 from blocking Home Assistant startup
-    sock.settimeout(3)
+    sock.settimeout(CONNECT_TIMEOUT)
 
     if serv == 1:
         server_address = (self._server, PORT)
     else:
         server_address = (self._server_2, PORT)
 
-    max_attempts = 3
-
     try:
-        for attempt in range(1, max_attempts + 1):
+        for attempt in range(1, MAX_ATTEMPTS + 1):
             result = sock.connect_ex(server_address)
 
             if result == 0:
+                sock.settimeout(RESPONSE_TIMEOUT)
                 break
 
             _LOGGER.warning(
@@ -597,18 +600,18 @@ def send_request(self, serv, *arg): # data
                 server_address[0],
                 server_address[1],
                 attempt,
-                max_attempts,
+                MAX_ATTEMPTS,
             )
 
             if attempt < max_attempts:
-                time.sleep(1)
+                time.sleep(RETRY_DELAY)
         else:
             _LOGGER.error(
                 "Unable to connect to Sinope GT125 at %s:%s "
                 "after %s attempts",
                 server_address[0],
                 server_address[1],
-                max_attempts,
+                MAX_ATTEMPTS,
             )
             return False
 
