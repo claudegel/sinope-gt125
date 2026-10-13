@@ -44,6 +44,10 @@ from .const import (
 )
 from .helpers import setup_logger
 
+CONNECT_TIMEOUT = 3
+RESPONSE_TIMEOUT = 10
+MAX_ATTEMPTS = 3
+RETRY_DELAY = 2
 DEFAULT_LOG_MAX_BYTES = 2 * 1024 * 1024
 DEFAULT_LOG_BACKUP_COUNT = 3
 DEFAULT_LOG_RESET_ON_START = True
@@ -571,20 +575,51 @@ def error_info(bug,device):
     else:
         _LOGGER.debug("in request for %s : Unknown error (%s).", device, bug)
 
-def send_request(self, serv, *arg): #data
+def send_request(self, serv, *arg): # data
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # Prevent an unavailable GT125 from blocking Home Assistant startup
+    sock.settimeout(CONNECT_TIMEOUT)
+
     if serv == 1:
         server_address = (self._server, PORT)
     else:
         server_address = (self._server_2, PORT)
-    while sock.connect_ex(server_address) != 0:
-        _LOGGER.debug("Connect fail... waiting for socket connection...")
-        time.sleep(1)
+
     try:
+        for attempt in range(1, MAX_ATTEMPTS + 1):
+            result = sock.connect_ex(server_address)
+
+            if result == 0:
+                sock.settimeout(RESPONSE_TIMEOUT)
+                break
+
+            _LOGGER.warning(
+                "Unable to connect to Sinope GT125 at %s:%s "
+                "(attempt %s/%s)",
+                server_address[0],
+                server_address[1],
+                attempt,
+                MAX_ATTEMPTS,
+            )
+
+            if attempt < max_attempts:
+                time.sleep(RETRY_DELAY)
+        else:
+            _LOGGER.error(
+                "Unable to connect to Sinope GT125 at %s:%s "
+                "after %s attempts",
+                server_address[0],
+                server_address[1],
+                MAX_ATTEMPTS,
+            )
+            return False
+
         if serv == 1:
             sock.sendall(login_request(self))
         else:
             sock.sendall(login_request_2(self))
+
         if bytearray(sock.recv(1024)).hex()[0:14] == "55000c00110100": #Login ok
 #            _LOGGER.debug("Sinope login = ok")
             sock.sendall(arg[0])
@@ -629,7 +664,7 @@ def send_request(self, serv, *arg): #data
 #                    _LOGGER.debug("Reply coupé = %s", binascii.hexlify(datarec))
                     state = binascii.hexlify(datarec)[20:22]
                     if state == b'00': # request has been queued, will receive another answer later
-                        _LOGGER.debug("Request queued for device %s, waiting...", deviceID)
+                        _LOGGER.debug("Request queued for device %s, waiting...", deviceid)
                     elif state == b'0a': #we got an answer
                         return datarec
                     elif state == b'0b': # we receive a push notification
@@ -644,6 +679,24 @@ def send_request(self, serv, *arg): #data
                 _LOGGER.debug("Bad response, crc error...")
         else:
             _LOGGER.debug("Sinope login fail, check your Api_Key and Api_ID")
+
+    except socket.timeout:
+        _LOGGER.warning(
+            "Timeout communicating with Sinope GT125 at %s:%s",
+            server_address[0],
+            server_address[1],
+        )
+        return False
+
+    except OSError as err:
+        _LOGGER.warning(
+            "Communication error with Sinope GT125 at %s:%s: %s",
+            server_address[0],
+            server_address[1],
+            err,
+        )
+        return False
+
     finally:
         sock.close()
 
