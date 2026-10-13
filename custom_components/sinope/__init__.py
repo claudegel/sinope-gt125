@@ -4,6 +4,7 @@ import requests
 import json
 import struct
 import binascii
+import errno
 import socket
 import sys
 import pytz
@@ -576,24 +577,27 @@ def error_info(bug,device):
         _LOGGER.debug("in request for %s : Unknown error (%s).", device, bug)
 
 def send_request(self, serv, *arg): # data
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    # Prevent an unavailable GT125 from blocking Home Assistant startup
-    sock.settimeout(CONNECT_TIMEOUT)
-
     if serv == 1:
         server_address = (self._server, PORT)
     else:
         server_address = (self._server_2, PORT)
 
+    sock = None
     try:
         for attempt in range(1, MAX_ATTEMPTS + 1):
+            # Use a new socket for each attempt: after a timed-out connect,
+            # connect_ex() on the same socket returns EALREADY immediately.
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # Prevent an unavailable GT125 from blocking Home Assistant startup
+            sock.settimeout(CONNECT_TIMEOUT)
             result = sock.connect_ex(server_address)
 
-            if result == 0:
+            if result in (0, errno.EISCONN):
                 sock.settimeout(RESPONSE_TIMEOUT)
                 break
 
+            sock.close()
+            sock = None
             _LOGGER.warning(
                 "Unable to connect to Sinope GT125 at %s:%s "
                 "(attempt %s/%s)",
@@ -603,7 +607,7 @@ def send_request(self, serv, *arg): # data
                 MAX_ATTEMPTS,
             )
 
-            if attempt < max_attempts:
+            if attempt < MAX_ATTEMPTS:
                 time.sleep(RETRY_DELAY)
         else:
             _LOGGER.error(
@@ -680,6 +684,11 @@ def send_request(self, serv, *arg): # data
         else:
             _LOGGER.debug("Sinope login fail, check your Api_Key and Api_ID")
 
+        # Every successful path returns the reply above. Anything reaching
+        # this point is a failure: return False instead of None, because
+        # callers wrap the result in bytearray() and bytearray(None) raises.
+        return False
+
     except socket.timeout:
         _LOGGER.warning(
             "Timeout communicating with Sinope GT125 at %s:%s",
@@ -698,7 +707,8 @@ def send_request(self, serv, *arg): # data
         return False
 
     finally:
-        sock.close()
+        if sock is not None:
+            sock.close()
 
 def login_request(self):
     login_data = "550012001001"+invert(self._api_id)+self._api_key
