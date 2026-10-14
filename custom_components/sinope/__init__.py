@@ -8,6 +8,7 @@ import errno
 import socket
 import sys
 import pytz
+import threading
 import time
 from astral.sun import sun
 from astral import LocationInfo
@@ -49,6 +50,9 @@ CONNECT_TIMEOUT = 3
 RESPONSE_TIMEOUT = 10
 MAX_ATTEMPTS = 3
 RETRY_DELAY = 2
+# After a gateway fails every connection attempt, skip it for this many
+# seconds instead of waiting ~13 s on each request.
+GATEWAY_BACKOFF = 60
 DEFAULT_LOG_MAX_BYTES = 2 * 1024 * 1024
 DEFAULT_LOG_BACKUP_COUNT = 3
 DEFAULT_LOG_RESET_ON_START = True
@@ -576,12 +580,34 @@ def error_info(bug,device):
     else:
         _LOGGER.debug("in request for %s : Unknown error (%s).", device, bug)
 
+# The climate, light and switch platforms update in parallel, but a GT125
+# handles one connection at a time: concurrent requests fail to connect while
+# another one is waiting for a device. One lock per gateway serializes them.
+_gateway_locks = {}
+_gateway_locks_guard = threading.Lock()
+_gateway_down_until = {}
+
+def _gateway_lock(server_address):
+    with _gateway_locks_guard:
+        return _gateway_locks.setdefault(server_address, threading.Lock())
+
 def send_request(self, serv, *arg): # data
     if serv == 1:
         server_address = (self._server, PORT)
     else:
         server_address = (self._server_2, PORT)
 
+    with _gateway_lock(server_address):
+        if time.monotonic() < _gateway_down_until.get(server_address, 0):
+            _LOGGER.debug(
+                "Skipping request to Sinope GT125 at %s:%s (unreachable, retrying later)",
+                server_address[0],
+                server_address[1],
+            )
+            return False
+        return _send_request_locked(self, server_address, serv, *arg)
+
+def _send_request_locked(self, server_address, serv, *arg):
     sock = None
     try:
         for attempt in range(1, MAX_ATTEMPTS + 1):
@@ -612,11 +638,13 @@ def send_request(self, serv, *arg): # data
         else:
             _LOGGER.error(
                 "Unable to connect to Sinope GT125 at %s:%s "
-                "after %s attempts",
+                "after %s attempts, skipping it for %s s",
                 server_address[0],
                 server_address[1],
                 MAX_ATTEMPTS,
+                GATEWAY_BACKOFF,
             )
+            _gateway_down_until[server_address] = time.monotonic() + GATEWAY_BACKOFF
             return False
 
         if serv == 1:
