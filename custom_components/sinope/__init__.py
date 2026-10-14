@@ -637,6 +637,26 @@ def send_request(self, serv, *arg): # data
             _device_misses.pop(device_key, None)
         return reply
 
+def _next_frame(sock, buf):
+    """Return (frame, rest) for the next complete GT125 frame in buf, reading
+    more from sock as needed; frame is None if the gateway closed the
+    connection. A frame is 55 00, a 2-byte little-endian size, that many
+    bytes, then the crc."""
+    while True:
+        start = buf.find(b"\x55\x00")
+        if start < 0:
+            buf = buf[-1:]
+        elif start > 0:
+            buf = buf[start:]
+        if start >= 0 and len(buf) >= 4:
+            total = 4 + int.from_bytes(buf[2:4], "little") + 1
+            if len(buf) >= total:
+                return buf[:total], buf[total:]
+        data = sock.recv(1024)
+        if not data:
+            return None, buf
+        buf += data
+
 def _send_request_locked(self, server_address, serv, device_key, *arg):
     sock = None
     request_sent = False
@@ -687,60 +707,46 @@ def _send_request_locked(self, server_address, serv, device_key, *arg):
 #            _LOGGER.debug("Sinope login = ok")
             sock.sendall(arg[0])
             request_sent = True
-            reply = sock.recv(1024)
-            if crc_check(reply):  # receive acknowledge, check status and if we will receive more data
-#                _LOGGER.debug("Reply et longueur du data = %s - %s", len(reply), binascii.hexlify(reply))
-                deviceid = bytearray(reply).hex()[26:34]
-                if len(reply) == 19:
-                    seq_num = binascii.hexlify(reply)[12:20] #sequence id to link response to the correct request
-                    status = binascii.hexlify(reply)[20:22]
-                    more = binascii.hexlify(reply)[24:26] #check if we will receive other data
+            # A late answer to an earlier request can arrive on this
+            # connection; only frames carrying this request's sequence
+            # number (bytes 6-9) are its answer, anything else is skipped.
+            seq = arg[0][6:10]
+            buf = b""
+            while True:
+                frame, buf = _next_frame(sock, buf)
+                if frame is None:
+                    _LOGGER.debug("Connection closed by Sinope GT125 before the answer")
+                    return False
+                if not crc_check(frame):
+                    _LOGGER.debug("Bad response, crc error...")
+                    return False
+                deviceid = bytearray(frame).hex()[26:34]
+                status = binascii.hexlify(frame)[20:22]
+                if status == b'0b': # we receive a push notification
+                    get_data_push(frame)
+                    continue
+                if frame[6:10] != seq:
+                    _LOGGER.debug("Discarding answer to another request: %s", binascii.hexlify(frame))
+                    continue
+                if len(frame) == 19: # acknowledge
+                    more = binascii.hexlify(frame)[24:26] #check if we will receive other data
                     if status == b'00': # request status = ok for read and write, we go on (read=00, report=01, write=00)
                         if more == b'01': #GT125 is sending another data response
-                            state = status
-                            while state != b'0a':
-                                datarec = sock.recv(1024)
-#                                _LOGGER.debug("Reply2 received for device %s, %s", deviceid, binascii.hexlify(datarec))
-                                state = binascii.hexlify(datarec)[20:22]
-                                if state == b'00': # request has been queued, will receive another answer later
-                                    _LOGGER.debug("Request queued for device %s, waiting...", deviceid)
-                                elif state == b'0a': #we got an answer
-                                    return datarec
-                                    break
-                                elif state == b'0b': # we receive a push notification
-                                    get_data_push(datarec)
-                                    break
-                                else:
-                                    _LOGGER.debug("Bad answer received, data: %s", binascii.hexlify(datarec))
-                                    error_info(state,deviceid)
-                                    return False
-                                    break
-                        else:
-                            _LOGGER.debug("No more response...")
-                            return False
+                            continue
+                        _LOGGER.debug("No more response...")
+                        return False
                     elif status == b'01': #status ok for data report
-                        return reply
-                    else:
-                        error_info(status,deviceid)
-                        return False
-                elif len(reply) > 19: # case data received with the acknowledge
-                    datarec = reply[19:]
-#                    _LOGGER.debug("Reply coupé = %s", binascii.hexlify(datarec))
-                    state = binascii.hexlify(datarec)[20:22]
-                    if state == b'00': # request has been queued, will receive another answer later
-                        _LOGGER.debug("Request queued for device %s, waiting...", deviceid)
-                    elif state == b'0a': #we got an answer
-                        return datarec
-                    elif state == b'0b': # we receive a push notification
-                        get_data_push(datarec)
-                    else:
-                        _LOGGER.debug("Bad answer received, data: %s", binascii.hexlify(datarec))
-                        error_info(state,deviceid)
-                        return False
-                else:
-                    _LOGGER.debug("Bad response, Check data send request %s", binascii.hexlify(reply))
-            else:
-                _LOGGER.debug("Bad response, crc error...")
+                        return frame
+                    error_info(status,deviceid)
+                    return False
+                if status == b'0a': #we got an answer
+                    return frame
+                elif status == b'00': # request has been queued, will receive another answer later
+                    _LOGGER.debug("Request queued for device %s, waiting...", deviceid)
+                    continue
+                _LOGGER.debug("Bad answer received, data: %s", binascii.hexlify(frame))
+                error_info(status,deviceid)
+                return False
         else:
             _LOGGER.debug("Sinope login fail, check your Api_Key and Api_ID")
 
