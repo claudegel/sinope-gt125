@@ -431,8 +431,13 @@ def get_led(state,data):
     sequence = data[12:20]
     deviceID = data[26:34]
     status = data[20:22]
-    if status != "0a":
-        _LOGGER.debug("Status code: %s (Wrong answer for: %s) Data:(%s)", status, deviceID, data)
+    # The four LED values end at offset 54; a shorter reply raised ValueError
+    # in float.fromhex(''), which dropped the light entity at startup.
+    if status != "0a" or len(data) < 54:
+        if status == "0a":
+            _LOGGER.warning("Incomplete LED reply for %s, Data:(%s)", deviceID, data)
+        else:
+            _LOGGER.debug("Status code: %s (Wrong answer for: %s) Data:(%s)", status, deviceID, data)
         my_led = {}
         if state == 1:
             my_led['intensity_on'] = 0
