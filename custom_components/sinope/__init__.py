@@ -53,6 +53,12 @@ RETRY_DELAY = 2
 # After a gateway fails every connection attempt, skip it for this many
 # seconds instead of waiting ~13 s on each request.
 GATEWAY_BACKOFF = 60
+# After a device leaves DEVICE_SILENT_AFTER reads in a row unanswered, skip its
+# other reads for DEVICE_BACKOFF seconds: an entity update sends up to ~12
+# reads, each waiting RESPONSE_TIMEOUT. A single unanswered read isn't enough:
+# some devices never answer one particular read but answer the others.
+DEVICE_SILENT_AFTER = 2
+DEVICE_BACKOFF = 60
 DEFAULT_LOG_MAX_BYTES = 2 * 1024 * 1024
 DEFAULT_LOG_BACKUP_COUNT = 3
 DEFAULT_LOG_RESET_ON_START = True
@@ -591,6 +597,8 @@ def error_info(bug,device):
 _gateway_locks = {}
 _gateway_locks_guard = threading.Lock()
 _gateway_down_until = {}
+_device_down_until = {}
+_device_misses = {}
 
 def _gateway_lock(server_address):
     with _gateway_locks_guard:
@@ -602,6 +610,14 @@ def send_request(self, serv, *arg): # data
     else:
         server_address = (self._server_2, PORT)
 
+    # Requests carry the command at bytes 4-5 and the device ID at bytes
+    # 17-20. Only reads are skipped for a silent device, never writes.
+    request = arg[0]
+    if request[4:6] == bytes.fromhex(data_read_command):
+        device_key = (server_address, request[17:21].hex())
+    else:
+        device_key = None
+
     with _gateway_lock(server_address):
         if time.monotonic() < _gateway_down_until.get(server_address, 0):
             _LOGGER.debug(
@@ -610,10 +626,20 @@ def send_request(self, serv, *arg): # data
                 server_address[1],
             )
             return False
-        return _send_request_locked(self, server_address, serv, *arg)
+        if device_key and time.monotonic() < _device_down_until.get(device_key, 0):
+            _LOGGER.debug(
+                "Skipping read from device %s (no answer, retrying later)",
+                device_key[1],
+            )
+            return False
+        reply = _send_request_locked(self, server_address, serv, device_key, *arg)
+        if device_key and reply:
+            _device_misses.pop(device_key, None)
+        return reply
 
-def _send_request_locked(self, server_address, serv, *arg):
+def _send_request_locked(self, server_address, serv, device_key, *arg):
     sock = None
+    request_sent = False
     try:
         for attempt in range(1, MAX_ATTEMPTS + 1):
             # Use a new socket for each attempt: after a timed-out connect,
@@ -660,6 +686,7 @@ def _send_request_locked(self, server_address, serv, *arg):
         if bytearray(sock.recv(1024)).hex()[0:14] == "55000c00110100": #Login ok
 #            _LOGGER.debug("Sinope login = ok")
             sock.sendall(arg[0])
+            request_sent = True
             reply = sock.recv(1024)
             if crc_check(reply):  # receive acknowledge, check status and if we will receive more data
 #                _LOGGER.debug("Reply et longueur du data = %s - %s", len(reply), binascii.hexlify(reply))
@@ -723,11 +750,35 @@ def _send_request_locked(self, server_address, serv, *arg):
         return False
 
     except socket.timeout:
-        _LOGGER.warning(
-            "Timeout communicating with Sinope GT125 at %s:%s",
-            server_address[0],
-            server_address[1],
-        )
+        if request_sent and device_key:
+            # The data being read is at bytes 22-25 of the request
+            misses = _device_misses.get(device_key, 0) + 1
+            _device_misses[device_key] = misses
+            if misses >= DEVICE_SILENT_AFTER:
+                _LOGGER.warning(
+                    "No answer from device %s on Sinope GT125 at %s:%s "
+                    "(read %s), skipping its reads for %s s",
+                    device_key[1],
+                    server_address[0],
+                    server_address[1],
+                    arg[0][22:26].hex(),
+                    DEVICE_BACKOFF,
+                )
+                _device_down_until[device_key] = time.monotonic() + DEVICE_BACKOFF
+            else:
+                _LOGGER.warning(
+                    "No answer from device %s on Sinope GT125 at %s:%s (read %s)",
+                    device_key[1],
+                    server_address[0],
+                    server_address[1],
+                    arg[0][22:26].hex(),
+                )
+        else:
+            _LOGGER.warning(
+                "Timeout communicating with Sinope GT125 at %s:%s",
+                server_address[0],
+                server_address[1],
+            )
         return False
 
     except OSError as err:
