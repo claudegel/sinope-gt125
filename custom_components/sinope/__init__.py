@@ -601,6 +601,7 @@ _gateway_locks_guard = threading.Lock()
 _gateway_down_until = {}
 _device_down_until = {}
 _device_misses = {}
+_devices_not_member = set()
 
 def _gateway_lock(server_address):
     with _gateway_locks_guard:
@@ -637,6 +638,7 @@ def send_request(self, serv, *arg): # data
         reply = _send_request_locked(self, server_address, serv, device_key, *arg)
         if device_key and reply:
             _device_misses.pop(device_key, None)
+            _devices_not_member.discard(device_key)
         return reply
 
 def _next_frame(sock, buf):
@@ -684,6 +686,20 @@ def _device_no_answer(device_key, server_address, request):
             "No answer from device %s on Sinope GT125 at %s:%s (read %s)",
             device, server_address[0], server_address[1], data,
         )
+
+def _device_not_member(server_address, request):
+    """Warn once per device that the GT125 doesn't know it: it is listed in
+    sinope_devices.json but isn't paired with this gateway (status fa)."""
+    device = request[17:21].hex()
+    if (server_address, device) in _devices_not_member:
+        _LOGGER.debug("Device %s is not paired with Sinope GT125 at %s:%s", device, server_address[0], server_address[1])
+        return
+    _devices_not_member.add((server_address, device))
+    _LOGGER.warning(
+        "Device %s is not paired with Sinope GT125 at %s:%s (status fa): "
+        "pair it again or remove it from the devices file",
+        device, server_address[0], server_address[1],
+    )
 
 def _send_request_locked(self, server_address, serv, device_key, *arg):
     sock = None
@@ -758,6 +774,9 @@ def _send_request_locked(self, server_address, serv, device_key, *arg):
                     continue
                 if status == b'fc': # device not responding, the GT125 aborted the request
                     _device_no_answer(device_key, server_address, arg[0])
+                    return False
+                if status == b'fa': # device unknown to this GT125 (not paired with it)
+                    _device_not_member(server_address, arg[0])
                     return False
                 if len(frame) == 19: # acknowledge
                     more = binascii.hexlify(frame)[24:26] #check if we will receive other data
