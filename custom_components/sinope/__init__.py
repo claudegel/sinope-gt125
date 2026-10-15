@@ -47,7 +47,9 @@ from .const import (
 from .helpers import setup_logger
 
 CONNECT_TIMEOUT = 3
-RESPONSE_TIMEOUT = 10
+# When a device doesn't answer, the GT125 itself replies with status fc after
+# about 11 s. Wait longer than that, or its reply lands on the next connection.
+RESPONSE_TIMEOUT = 15
 MAX_ATTEMPTS = 3
 RETRY_DELAY = 2
 # After a gateway fails every connection attempt, skip it for this many
@@ -657,6 +659,32 @@ def _next_frame(sock, buf):
             return None, buf
         buf += data
 
+def _device_no_answer(device_key, server_address, request):
+    """Count a request the device didn't answer; after DEVICE_SILENT_AFTER
+    unanswered reads in a row, skip that device's reads for DEVICE_BACKOFF."""
+    # Device ID at bytes 17-20 and the data read or written at bytes 22-25
+    device, data = request[17:21].hex(), request[22:26].hex()
+    if not device_key:
+        _LOGGER.warning(
+            "No answer from device %s on Sinope GT125 at %s:%s (write %s)",
+            device, server_address[0], server_address[1], data,
+        )
+        return
+    misses = _device_misses.get(device_key, 0) + 1
+    _device_misses[device_key] = misses
+    if misses >= DEVICE_SILENT_AFTER:
+        _LOGGER.warning(
+            "No answer from device %s on Sinope GT125 at %s:%s "
+            "(read %s), skipping its reads for %s s",
+            device, server_address[0], server_address[1], data, DEVICE_BACKOFF,
+        )
+        _device_down_until[device_key] = time.monotonic() + DEVICE_BACKOFF
+    else:
+        _LOGGER.warning(
+            "No answer from device %s on Sinope GT125 at %s:%s (read %s)",
+            device, server_address[0], server_address[1], data,
+        )
+
 def _send_request_locked(self, server_address, serv, device_key, *arg):
     sock = None
     request_sent = False
@@ -728,6 +756,9 @@ def _send_request_locked(self, server_address, serv, device_key, *arg):
                 if frame[6:10] != seq:
                     _LOGGER.debug("Discarding answer to another request: %s", binascii.hexlify(frame))
                     continue
+                if status == b'fc': # device not responding, the GT125 aborted the request
+                    _device_no_answer(device_key, server_address, arg[0])
+                    return False
                 if len(frame) == 19: # acknowledge
                     more = binascii.hexlify(frame)[24:26] #check if we will receive other data
                     if status == b'00': # request status = ok for read and write, we go on (read=00, report=01, write=00)
@@ -756,29 +787,8 @@ def _send_request_locked(self, server_address, serv, device_key, *arg):
         return False
 
     except socket.timeout:
-        if request_sent and device_key:
-            # The data being read is at bytes 22-25 of the request
-            misses = _device_misses.get(device_key, 0) + 1
-            _device_misses[device_key] = misses
-            if misses >= DEVICE_SILENT_AFTER:
-                _LOGGER.warning(
-                    "No answer from device %s on Sinope GT125 at %s:%s "
-                    "(read %s), skipping its reads for %s s",
-                    device_key[1],
-                    server_address[0],
-                    server_address[1],
-                    arg[0][22:26].hex(),
-                    DEVICE_BACKOFF,
-                )
-                _device_down_until[device_key] = time.monotonic() + DEVICE_BACKOFF
-            else:
-                _LOGGER.warning(
-                    "No answer from device %s on Sinope GT125 at %s:%s (read %s)",
-                    device_key[1],
-                    server_address[0],
-                    server_address[1],
-                    arg[0][22:26].hex(),
-                )
+        if request_sent:
+            _device_no_answer(device_key, server_address, arg[0])
         else:
             _LOGGER.warning(
                 "Timeout communicating with Sinope GT125 at %s:%s",
