@@ -231,7 +231,7 @@ async def async_setup_platform(
         dev_list_2 = []
         async with aiofiles.open(CONF_file_2) as g:
             async for line in g:
-                dev_list_2.append(json.loads(line))         
+                dev_list_2.append(json.loads(line))
         await g.close()
         i = 2
         tot2 = len(dev_list_2)
@@ -492,18 +492,6 @@ class SinopeThermostat(ClimateEntity):
     def name(self):
         """Return the name of the thermostat."""
         return self._name
-
-    @property
-    def device_info(self):
-        """Return the device info."""
-        return {
-            "identifiers": {
-                (sinope.DOMAIN, self.unique_id)
-            },
-            "name": self.name,
-            "manufacturer": "Sinopé",
-            "device_id": self._id,
-        }
 
     @property
     def extra_state_attributes(self):
