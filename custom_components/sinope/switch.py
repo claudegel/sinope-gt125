@@ -273,16 +273,6 @@ class SinopeSwitch(SwitchEntity):
         return self._name
 
     @property
-    def device_info(self):
-        """Return the device info."""
-        return {
-            "identifiers": {(DOMAIN, self.unique_id)},
-            "name": self.name,
-            "manufacturer": "Sinopé",
-            "device_id": self._id,
-        }
-
-    @property
     def supported_features(self):
         """Return the list of supported features."""
         return SUPPORT_FLAGS
