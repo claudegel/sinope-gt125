@@ -352,16 +352,6 @@ class SinopeLight(LightEntity):
         return self._name
 
     @property
-    def device_info(self):
-        """Return the device info."""
-        return {
-            "identifiers": {(DOMAIN, self.unique_id)},
-            "name": self.name,
-            "manufacturer": "Sinopé",
-            "device_id": str(self._id),
-        }
-
-    @property
     def brightness(self):
         """Return intensity of light"""
         if self._is_dimmable:
