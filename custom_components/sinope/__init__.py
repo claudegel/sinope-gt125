@@ -8,6 +8,7 @@ import errno
 import socket
 import sys
 import pytz
+import threading
 import time
 from astral.sun import sun
 from astral import LocationInfo
@@ -46,9 +47,20 @@ from .const import (
 from .helpers import setup_logger
 
 CONNECT_TIMEOUT = 3
-RESPONSE_TIMEOUT = 10
+# When a device doesn't answer, the GT125 itself replies with status fc after
+# about 11 s. Wait longer than that, or its reply lands on the next connection.
+RESPONSE_TIMEOUT = 15
 MAX_ATTEMPTS = 3
 RETRY_DELAY = 2
+# After a gateway fails every connection attempt, skip it for this many
+# seconds instead of waiting ~13 s on each request.
+GATEWAY_BACKOFF = 60
+# After a device leaves DEVICE_SILENT_AFTER reads in a row unanswered, skip its
+# other reads for DEVICE_BACKOFF seconds: an entity update sends up to ~12
+# reads, each waiting RESPONSE_TIMEOUT. A single unanswered read isn't enough:
+# some devices never answer one particular read but answer the others.
+DEVICE_SILENT_AFTER = 2
+DEVICE_BACKOFF = 60
 DEFAULT_LOG_MAX_BYTES = 2 * 1024 * 1024
 DEFAULT_LOG_BACKUP_COUNT = 3
 DEFAULT_LOG_RESET_ON_START = True
@@ -427,8 +439,13 @@ def get_led(state,data):
     sequence = data[12:20]
     deviceID = data[26:34]
     status = data[20:22]
-    if status != "0a":
-        _LOGGER.debug("Status code: %s (Wrong answer for: %s) Data:(%s)", status, deviceID, data)
+    # The four LED values end at offset 54; a shorter reply raised ValueError
+    # in float.fromhex(''), which dropped the light entity at startup.
+    if status != "0a" or len(data) < 54:
+        if status == "0a":
+            _LOGGER.warning("Incomplete LED reply for %s, Data:(%s)", deviceID, data)
+        else:
+            _LOGGER.debug("Status code: %s (Wrong answer for: %s) Data:(%s)", status, deviceID, data)
         my_led = {}
         if state == 1:
             my_led['intensity_on'] = 0
@@ -576,13 +593,117 @@ def error_info(bug,device):
     else:
         _LOGGER.debug("in request for %s : Unknown error (%s).", device, bug)
 
+# The climate, light and switch platforms update in parallel, but a GT125
+# handles one connection at a time: concurrent requests fail to connect while
+# another one is waiting for a device. One lock per gateway serializes them.
+_gateway_locks = {}
+_gateway_locks_guard = threading.Lock()
+_gateway_down_until = {}
+_device_down_until = {}
+_device_misses = {}
+_devices_not_member = set()
+
+def _gateway_lock(server_address):
+    with _gateway_locks_guard:
+        return _gateway_locks.setdefault(server_address, threading.Lock())
+
 def send_request(self, serv, *arg): # data
     if serv == 1:
         server_address = (self._server, PORT)
     else:
         server_address = (self._server_2, PORT)
 
+    # Requests carry the command at bytes 4-5 and the device ID at bytes
+    # 17-20. Only reads are skipped for a silent device, never writes.
+    request = arg[0]
+    if request[4:6] == bytes.fromhex(data_read_command):
+        device_key = (server_address, request[17:21].hex())
+    else:
+        device_key = None
+
+    with _gateway_lock(server_address):
+        if time.monotonic() < _gateway_down_until.get(server_address, 0):
+            _LOGGER.debug(
+                "Skipping request to Sinope GT125 at %s:%s (unreachable, retrying later)",
+                server_address[0],
+                server_address[1],
+            )
+            return False
+        if device_key and time.monotonic() < _device_down_until.get(device_key, 0):
+            _LOGGER.debug(
+                "Skipping read from device %s (no answer, retrying later)",
+                device_key[1],
+            )
+            return False
+        reply = _send_request_locked(self, server_address, serv, device_key, *arg)
+        if device_key and reply:
+            _device_misses.pop(device_key, None)
+            _devices_not_member.discard(device_key)
+        return reply
+
+def _next_frame(sock, buf):
+    """Return (frame, rest) for the next complete GT125 frame in buf, reading
+    more from sock as needed; frame is None if the gateway closed the
+    connection. A frame is 55 00, a 2-byte little-endian size, that many
+    bytes, then the crc."""
+    while True:
+        start = buf.find(b"\x55\x00")
+        if start < 0:
+            buf = buf[-1:]
+        elif start > 0:
+            buf = buf[start:]
+        if start >= 0 and len(buf) >= 4:
+            total = 4 + int.from_bytes(buf[2:4], "little") + 1
+            if len(buf) >= total:
+                return buf[:total], buf[total:]
+        data = sock.recv(1024)
+        if not data:
+            return None, buf
+        buf += data
+
+def _device_no_answer(device_key, server_address, request):
+    """Count a request the device didn't answer; after DEVICE_SILENT_AFTER
+    unanswered reads in a row, skip that device's reads for DEVICE_BACKOFF."""
+    # Device ID at bytes 17-20 and the data read or written at bytes 22-25
+    device, data = request[17:21].hex(), request[22:26].hex()
+    if not device_key:
+        _LOGGER.warning(
+            "No answer from device %s on Sinope GT125 at %s:%s (write %s)",
+            device, server_address[0], server_address[1], data,
+        )
+        return
+    misses = _device_misses.get(device_key, 0) + 1
+    _device_misses[device_key] = misses
+    if misses >= DEVICE_SILENT_AFTER:
+        _LOGGER.warning(
+            "No answer from device %s on Sinope GT125 at %s:%s "
+            "(read %s), skipping its reads for %s s",
+            device, server_address[0], server_address[1], data, DEVICE_BACKOFF,
+        )
+        _device_down_until[device_key] = time.monotonic() + DEVICE_BACKOFF
+    else:
+        _LOGGER.warning(
+            "No answer from device %s on Sinope GT125 at %s:%s (read %s)",
+            device, server_address[0], server_address[1], data,
+        )
+
+def _device_not_member(server_address, request):
+    """Warn once per device that the GT125 doesn't know it: it is listed in
+    sinope_devices.json but isn't paired with this gateway (status fa)."""
+    device = request[17:21].hex()
+    if (server_address, device) in _devices_not_member:
+        _LOGGER.debug("Device %s is not paired with Sinope GT125 at %s:%s", device, server_address[0], server_address[1])
+        return
+    _devices_not_member.add((server_address, device))
+    _LOGGER.warning(
+        "Device %s is not paired with Sinope GT125 at %s:%s (status fa): "
+        "pair it again or remove it from the devices file",
+        device, server_address[0], server_address[1],
+    )
+
+def _send_request_locked(self, server_address, serv, device_key, *arg):
     sock = None
+    request_sent = False
     try:
         for attempt in range(1, MAX_ATTEMPTS + 1):
             # Use a new socket for each attempt: after a timed-out connect,
@@ -612,11 +733,13 @@ def send_request(self, serv, *arg): # data
         else:
             _LOGGER.error(
                 "Unable to connect to Sinope GT125 at %s:%s "
-                "after %s attempts",
+                "after %s attempts, skipping it for %s s",
                 server_address[0],
                 server_address[1],
                 MAX_ATTEMPTS,
+                GATEWAY_BACKOFF,
             )
+            _gateway_down_until[server_address] = time.monotonic() + GATEWAY_BACKOFF
             return False
 
         if serv == 1:
@@ -627,60 +750,53 @@ def send_request(self, serv, *arg): # data
         if bytearray(sock.recv(1024)).hex()[0:14] == "55000c00110100": #Login ok
 #            _LOGGER.debug("Sinope login = ok")
             sock.sendall(arg[0])
-            reply = sock.recv(1024)
-            if crc_check(reply):  # receive acknowledge, check status and if we will receive more data
-#                _LOGGER.debug("Reply et longueur du data = %s - %s", len(reply), binascii.hexlify(reply))
-                deviceid = bytearray(reply).hex()[26:34]
-                if len(reply) == 19:
-                    seq_num = binascii.hexlify(reply)[12:20] #sequence id to link response to the correct request
-                    status = binascii.hexlify(reply)[20:22]
-                    more = binascii.hexlify(reply)[24:26] #check if we will receive other data
+            request_sent = True
+            # A late answer to an earlier request can arrive on this
+            # connection; only frames carrying this request's sequence
+            # number (bytes 6-9) are its answer, anything else is skipped.
+            seq = arg[0][6:10]
+            buf = b""
+            while True:
+                frame, buf = _next_frame(sock, buf)
+                if frame is None:
+                    _LOGGER.debug("Connection closed by Sinope GT125 before the answer")
+                    return False
+                if not crc_check(frame):
+                    _LOGGER.debug("Bad response, crc error...")
+                    return False
+                deviceid = bytearray(frame).hex()[26:34]
+                status = binascii.hexlify(frame)[20:22]
+                if status == b'0b': # we receive a push notification
+                    get_data_push(frame)
+                    continue
+                if frame[6:10] != seq:
+                    _LOGGER.debug("Discarding answer to another request: %s", binascii.hexlify(frame))
+                    continue
+                if status == b'fc': # device not responding, the GT125 aborted the request
+                    _device_no_answer(device_key, server_address, arg[0])
+                    return False
+                if status == b'fa': # device unknown to this GT125 (not paired with it)
+                    _device_not_member(server_address, arg[0])
+                    return False
+                if len(frame) == 19: # acknowledge
+                    more = binascii.hexlify(frame)[24:26] #check if we will receive other data
                     if status == b'00': # request status = ok for read and write, we go on (read=00, report=01, write=00)
                         if more == b'01': #GT125 is sending another data response
-                            state = status
-                            while state != b'0a':
-                                datarec = sock.recv(1024)
-#                                _LOGGER.debug("Reply2 received for device %s, %s", deviceid, binascii.hexlify(datarec))
-                                state = binascii.hexlify(datarec)[20:22]
-                                if state == b'00': # request has been queued, will receive another answer later
-                                    _LOGGER.debug("Request queued for device %s, waiting...", deviceid)
-                                elif state == b'0a': #we got an answer
-                                    return datarec
-                                    break
-                                elif state == b'0b': # we receive a push notification
-                                    get_data_push(datarec)
-                                    break
-                                else:
-                                    _LOGGER.debug("Bad answer received, data: %s", binascii.hexlify(datarec))
-                                    error_info(state,deviceid)
-                                    return False
-                                    break
-                        else:
-                            _LOGGER.debug("No more response...")
-                            return False
+                            continue
+                        _LOGGER.debug("No more response...")
+                        return False
                     elif status == b'01': #status ok for data report
-                        return reply
-                    else:
-                        error_info(status,deviceid)
-                        return False
-                elif len(reply) > 19: # case data received with the acknowledge
-                    datarec = reply[19:]
-#                    _LOGGER.debug("Reply coupé = %s", binascii.hexlify(datarec))
-                    state = binascii.hexlify(datarec)[20:22]
-                    if state == b'00': # request has been queued, will receive another answer later
-                        _LOGGER.debug("Request queued for device %s, waiting...", deviceid)
-                    elif state == b'0a': #we got an answer
-                        return datarec
-                    elif state == b'0b': # we receive a push notification
-                        get_data_push(datarec)
-                    else:
-                        _LOGGER.debug("Bad answer received, data: %s", binascii.hexlify(datarec))
-                        error_info(state,deviceid)
-                        return False
-                else:
-                    _LOGGER.debug("Bad response, Check data send request %s", binascii.hexlify(reply))
-            else:
-                _LOGGER.debug("Bad response, crc error...")
+                        return frame
+                    error_info(status,deviceid)
+                    return False
+                if status == b'0a': #we got an answer
+                    return frame
+                elif status == b'00': # request has been queued, will receive another answer later
+                    _LOGGER.debug("Request queued for device %s, waiting...", deviceid)
+                    continue
+                _LOGGER.debug("Bad answer received, data: %s", binascii.hexlify(frame))
+                error_info(status,deviceid)
+                return False
         else:
             _LOGGER.debug("Sinope login fail, check your Api_Key and Api_ID")
 
@@ -690,11 +806,14 @@ def send_request(self, serv, *arg): # data
         return False
 
     except socket.timeout:
-        _LOGGER.warning(
-            "Timeout communicating with Sinope GT125 at %s:%s",
-            server_address[0],
-            server_address[1],
-        )
+        if request_sent:
+            _device_no_answer(device_key, server_address, arg[0])
+        else:
+            _LOGGER.warning(
+                "Timeout communicating with Sinope GT125 at %s:%s",
+                server_address[0],
+                server_address[1],
+            )
         return False
 
     except OSError as err:
