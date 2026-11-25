@@ -247,7 +247,20 @@ async def async_setup_platform(
                 break
             i = i + 1
 
-    async_add_entities(entities, True)
+    async_add_entities(entities)
+
+    async def _refresh_entities_initially() -> None:
+        """Refresh entities one by one after startup, without blocking setup."""
+        for entity in entities:
+            if hass.is_stopping:
+                return
+            try:
+                await entity.async_device_update()
+                entity.async_write_ha_state()
+            except Exception:  # noqa: BLE001 - one bad device must not abort the sweep
+                _LOGGER.warning("Initial refresh failed for %s", entity.name)
+
+    hass.async_create_task(_refresh_entities_initially())
 
     def set_outside_temperature_service(service):
         """ send local outside temperature to thermostats"""
