@@ -1,13 +1,22 @@
-This repository has been split up into two.
-- sinope-gt125 for devices management via direct conection to the gt125 web gateway.
-- sinope-1 for devices management via [Neviweb](http://neviweb.com) portal.
+## Home Assistant Sinope-gt125 Custom Components
+[🇫🇷 Version française](doc/readme_fr.md)
+> 💛 **Enjoying this integration?**  
+> If you'd like to support its ongoing development, you can contribute here:
+> [![Support via PayPal](https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg)](https://www.paypal.me/phytoressources/) or 
+> [![Donate via Interac](https://img.shields.io/badge/Interac-Don-orange?style=for-the-badge)](doc/Donations.md)
 
-If you already use this custom_component, make a backup of your file devices.json before first update via HACS. Devices.json will be removed. You'll need to copy your devices data to config/.storage/sinope_devices.json after first run of device.py (see below).
+This repository has been split up into two.
+- sinope-gt125 for Miwi devices management via direct connection to the gt125 web gateway.
+- sinope-1 for Miwi devices management via [Neviweb](http://neviweb.com) portal.
+
+If you already use this custom_component, make a backup of your file devices.json before first update via Marketplace. Devices.json will be removed. 
+You'll need to copy your devices data to config/.storage/sinope_devices.json after first run of device.py (see below).
 
 # Home Assistant Sinope Custom Components (sinope-gt125)
 
-Here is a custom component to suport [Sinopé technologies](http://sinopetech.com/) devices in [Home Assistant](http://www.home-assistant.io) via a direct connection to the GT125 router from 
-Sinopé Technologies to interact with their smart devices like thermostats, light switches/dimmers and load controllers. It also supports some devices made by [Ouellet](http://www.ouellet.com/en-ca/products/thermostats-and-controls/neviweb%C2%AE-wireless-communication-controls.aspx).
+Here is a custom component to suport [Sinopé technologies](http://sinopetech.com/) Miwi devices in [Home Assistant](http://www.home-assistant.io) 
+via a direct connection to the GT125 gateway from Sinopé Technologies to interact with their smart devices like thermostats, light switches/dimmers 
+and load controllers. It also supports some devices made by [Ouellet](http://www.ouellet.com/en-ca/products/thermostats-and-controls/neviweb%C2%AE-wireless-communication-controls.aspx).
 
 ## Supported Devices
 Here is a list of currently supported devices. Basically, it's everything that can be added in Neviweb.
@@ -33,21 +42,19 @@ Here is a list of currently supported devices. Basically, it's everything that c
 ## Prerequisite
 You need to connect your devices to your GT125 web gateway before being able to interact with them within Home Assistant. Please refer to the instructions manual of your device or visit [Neviweb support](https://www.sinopetech.com/blog/support-cat/plateforme-nevi-web/).
 
-There are two custom component giving you the choice to manage your devices via the neviweb portal or directly via your GT125 gateway:
-- [Neviweb](https://github.com/claudegel/sinope-1) custom component to manage your devices via neviweb portal.
-- [Sinope](https://github.com/claudegel/sinope-gt125) custom component to manage your devices directly via your GT125 gateway.
+There are two custom component giving you the choice to manage your devices via the Neviweb portal or directly via your GT125 gateway:
+- [Neviweb](https://github.com/claudegel/sinope-1) custom component to manage your Miwi devices via Neviweb portal.
+- [Sinope](https://github.com/claudegel/sinope-gt125) custom component to manage your Miwi devices directly via your GT125 gateway.
 
 You need to install only one of them but both can be used at the same time on HA.
 
-## Installation (see custom_components/GT125_connect.md for more specific info)
+## Installation (see [GT125_connect.md](custom_components/GT125_connect.md) for more specific info)
 There are two methods to install this custom component:
-- via HACS component (prefered method):
-  - This repository is compatible with the Home Assistant Community Store ([HACS](https://community.home-assistant.io/t/custom-component-hacs/121727)).
-  - After installing HACS, install 'Sinope GT125' from the store, and use the configuration.yaml example below.
+- via Home Assistant Marketplace (prefered method):
+  - Install 'Sinope GT125' from the store, and use the configuration.yaml example below.
 - Manually via direct download:
   - Download the zip file of this repository using the top right, green download button.
   - Extract the zip file on your computer, then copy the entire `custom_components` folder inside your Home Assistant «config» directory (where you can find your `configuration.yaml` file).
-    - Hassbian: /home/homeassistant/.homeassistant/
     - homeassistant-supervised (Hass.io): /config/
   - Your «config» directory should look like this:
 
@@ -103,8 +110,6 @@ if you have to configure two GT125 you need to have both data handy. With device
 - For homeassistant-supervised (Hass.io) you already run as root so you don't need the sudo command.
 - To findout if python is installed run: python --version in the terminal or type python and hit the TAB key. This should display python, python3 and python3-xx where xx is the version installed in HA.
 - For easyer install on homeassistant-supervised (Hass.io) add the package «advanced ssh & Web Terminal». With this you don't need to install SSH and you'll be able to edit your config and run device.py directly in a web console inside of HA.
-- to install HACS via that console run the commande:
-`wget https://github.com/custom-components/hacs/archive/1.3.0.zip`. Version number could be different.
 
 Execute the command: 'python3 device.py' in console (for python3.10: 'python3.10 device.py'). Sudo is required for file permission fix. In homeassistant-supervised (Hass.io) you don't need sudo. Make sure you are in the config/custom_components/sinope directory when you run device.py or it won't run. Running device.py is required to install the data above and to get the Api_Key and later the deviceID for each Sinopé devices connected to your GT125. On first run, device.py ask for IP, Api ID and port number then send a ping request to the GT125. It will then ask you to push de "WEB" button on the GT125. This will give you the Api Key.
 
@@ -214,7 +219,7 @@ Automation example:
    you can use any temperature provider; Openweathermap, Environment canada, even an ouside sensor that give you your local temperature.
    
 ## Customization
-Install  [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component via HACS and add the following in your code:
+Install  [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component via Marketplace and add the following in your code:
 
 Icons for heat level: create folder www in the root folder .homeassistant/www
 copy the six icons there. You can find them under local/www
